@@ -32,11 +32,21 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
 
   const applyPreset = (preset: typeof PRESETS[0]) => {
     setActivePreset(preset.label);
-    setScenarioName(`${preset.label} Scenario`);
+    const newTitle = `${preset.label} Scenario`;
+    setScenarioName(newTitle);
     setUnemploymentShock(preset.unemp);
     setRateShock(preset.rate);
     setHorizonMonths(preset.horizon);
     setNSims(preset.sims);
+
+    onSubmit({
+      scenario_name: newTitle,
+      unemployment_shock: preset.unemp,
+      rate_shock: preset.rate,
+      n_sims: preset.sims,
+      horizon_months: preset.horizon,
+      seed: Math.floor(Math.random() * 100000),
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,7 +57,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       rate_shock: rateShock,
       n_sims: nSims,
       horizon_months: horizonMonths,
-      seed: 42,
+      seed: Math.floor(Math.random() * 100000),
     });
   };
 
@@ -94,6 +104,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
                 <button
                   key={p.label}
                   type="button"
+                  disabled={loading}
                   onClick={() => applyPreset(p)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                     isActive

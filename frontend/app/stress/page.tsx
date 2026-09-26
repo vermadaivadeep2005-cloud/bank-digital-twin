@@ -216,7 +216,13 @@ function StressContent() {
                   </div>
                   <Badge variant="neutral">Frequency Distribution</Badge>
                 </div>
-                <LossHistogram losses={result.distribution} />
+                <LossHistogram
+                  key={`hist_${result.summary.expected_loss}_${result.summary.p95_loss}_${result.survived_pct}`}
+                  losses={result.distribution}
+                  meanLoss={result.summary.expected_loss}
+                  p95Loss={result.summary.p95_loss}
+                  worstCaseLoss={result.summary.worst_case_loss}
+                />
               </Card>
 
               {/* Capital Paths Fan Chart */}
@@ -224,7 +230,7 @@ function StressContent() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <CardTitle>Capital Path Trajectories (P5 / P50 / P95)</CardTitle>
-                    <CardDescription>Projected bank Tier 1 capital over 24-month horizon under stress</CardDescription>
+                    <CardDescription>Projected bank Tier 1 capital over horizon under stress</CardDescription>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] font-mono">
                     <span className="text-emerald-400">P95 Best</span>
@@ -232,7 +238,7 @@ function StressContent() {
                     <span className="text-rose-400">P5 Adverse</span>
                   </div>
                 </div>
-                <MonteCarloFan paths={result.capital_paths} />
+                <MonteCarloFan key={`fan_${result.summary.expected_loss}_${result.survived_pct}`} paths={result.capital_paths} />
               </Card>
 
               {/* Segment Breakdown */}

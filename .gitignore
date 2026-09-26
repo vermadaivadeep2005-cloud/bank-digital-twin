@@ -33,6 +33,8 @@ frontend/build/
 frontend/dist/
 frontend/.env.local
 frontend/tsconfig.tsbuildinfo
+frontend/AGENTS.md
+frontend/CLAUDE.md
 
 # Scratch & Temp
 scratch/
