@@ -1,0 +1,38 @@
+# OS & IDE files
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Environment & Secrets
+.env
+*.env
+!.env.example
+
+# Python & Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+.pytest_cache/
+backend/.pytest_cache/
+*.db
+*.sqlite3
+bank_twin.db
+backend/bank_twin.db
+
+# Frontend & Node
+frontend/node_modules/
+frontend/.next/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+frontend/tsconfig.tsbuildinfo
+
+# Scratch & Temp
+scratch/
