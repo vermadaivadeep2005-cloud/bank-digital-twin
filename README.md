@@ -27,6 +27,22 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
 
 ---
 
+## 🖼️ Platform Screenshots & Interface Showcase
+
+### 📈 Executive Overview Dashboard
+![Overview Dashboard](frontend/public/screenshots/dashboard.png)
+
+### ⚡ Monte Carlo Stress Testing Engine
+![Stress Engine](frontend/public/screenshots/stress_engine.png)
+
+### 📁 Loan Portfolio Explorer & AI Credit Risk Scorecard
+![Loan Portfolio Explorer](frontend/public/screenshots/loan_portfolio.png)
+
+### 📈 Predictive Metric Forecasting & 3D Risk Breakdown
+![Predictive Forecasting](frontend/public/screenshots/predictive_forecasting.png)
+
+---
+
 ## 🏗 System Architecture & Technology Stack
 
 ```

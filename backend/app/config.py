@@ -1,9 +1,8 @@
 import os
-from pydantic_settings import BaseSettings
-from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List, Union
 
-
-from pydantic import ConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -21,9 +20,26 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
     # CORS
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: Union[List[str], str] = ["*"]
 
-    model_config = ConfigDict(env_file=".env", extra="ignore")
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return [str(v)]
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
 
 
 settings = Settings()
+
