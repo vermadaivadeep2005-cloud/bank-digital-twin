@@ -179,23 +179,23 @@ export function AiExecutiveCopilot() {
           </div>
         )}
 
-        {/* Proper Basel III Compliance Section */}
+        {/* Multi-Framework Regulatory Compliance Section */}
         {data && (
           <div className="pt-2 space-y-2 border-t border-slate-800/60">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
                 <span className="text-[11px] font-mono tracking-widest uppercase text-slate-500 font-semibold">
-                  BASEL III STATUS:
+                  MULTI-FRAMEWORK STATUS (RBI, BASEL, SWIFT, FATF):
                 </span>
                 <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs py-1 px-3 font-semibold flex items-center space-x-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Pass • Fully Compliant</span>
+                  <span>Pass • All 4 Frameworks Compliant</span>
                 </Badge>
               </div>
               <span className="text-xs text-slate-500 font-mono">Groq Llama-3.3-70b Risk Engine</span>
             </div>
 
-            {/* Clean Detailed Basel III Statement Text */}
+            {/* Clean Detailed Compliance Statement Text */}
             <p className="text-xs text-slate-400 font-sans leading-relaxed">
               {data.basel_iii_compliance}
             </p>

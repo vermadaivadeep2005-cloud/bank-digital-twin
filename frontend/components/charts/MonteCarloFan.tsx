@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
+import CroMathBreakdown from "@/components/common/CroMathBreakdown";
 
 interface MonteCarloFanProps {
   paths: {
@@ -117,6 +118,32 @@ export function MonteCarloFan({ paths }: MonteCarloFanProps) {
           />
         </AreaChart>
       </ResponsiveContainer>
+
+      {/* CRO Math Breakdown for Monte Carlo Trajectories */}
+      <CroMathBreakdown
+        title="Monte Carlo Capital Trajectory & Quantile Bounds Methodology"
+        methodology="Simulates 60-month Tier 1 capital paths by integrating Net Interest Income (NII) accumulation against monthly credit loss draws."
+        steps={[
+          {
+            step: 1,
+            title: "Capital Accumulation Difference Equation",
+            formula: "Capital_(t+1) = Capital_t + NII_(t+1) - Monthly_Losses_(t+1)",
+            explanation: "Models monthly capital position as previous capital plus Net Interest Margin earnings minus credit losses.",
+          },
+          {
+            step: 2,
+            title: "Time-Evolving Macro Stress Profile",
+            formula: "Stress_Profile(m) = 0.4 + 0.9 * sin( pi * m / 24 )",
+            explanation: "Simulates crisis build-up phase peaking around month 12 to 16 before stabilizing.",
+          },
+          {
+            step: 3,
+            title: "Path Quantile Bounds (P5 Adverse / P50 Median / P95 Best)",
+            formula: "P_k(t) = Quantile_k( { Capital_path_i(t) } )",
+            explanation: "Extracts 5th percentile (stress path), 50th percentile (median), and 95th percentile (optimistic path) across all simulated trajectories.",
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -62,3 +62,49 @@ def test_monte_carlo_extreme_shock_survival(db_session):
     assert "summary" in res
     assert res["summary"]["expected_loss"] > 0
     assert 0.0 <= res["survived_pct"] <= 100.0
+
+
+def test_copula_models(db_session):
+    # Test Gaussian vs Student's t-copula execution
+    res_gauss = run_monte_carlo_vectorized(
+        db_session,
+        copula_type="gaussian",
+        n_sims=300,
+        seed=42,
+    )
+    res_t = run_monte_carlo_vectorized(
+        db_session,
+        copula_type="student_t",
+        degrees_of_freedom=4,
+        n_sims=300,
+        seed=42,
+    )
+
+    assert res_gauss["copula_type"] == "gaussian"
+    assert res_t["copula_type"] == "student_t"
+    assert res_t["degrees_of_freedom"] == 4
+    assert res_gauss["summary"]["expected_loss"] > 0
+    assert res_t["summary"]["expected_loss"] > 0
+
+
+def test_reverse_stress_testing(db_session):
+    from app.simulation.monte_carlo import run_reverse_stress_test
+
+    rev_res = run_reverse_stress_test(
+        db_session,
+        target_metric="car_breach",
+        target_value=8.0,
+        copula_type="student_t",
+        degrees_of_freedom=5,
+        n_sims=300,
+        actions={
+            "capital_injection": 50000000.0,
+            "portfolio_derisk_pct": 0.20,
+        },
+    )
+
+    assert "breaking_shock" in rev_res
+    assert "comparison" in rev_res
+    assert len(rev_res["comparison"]) >= 4
+    assert rev_res["mitigation_status"] in ["RECOVERED", "PARTIALLY_MITIGATED", "INSUFFICIENT_ACTION"]
+

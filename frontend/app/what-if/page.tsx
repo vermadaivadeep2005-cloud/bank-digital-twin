@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Sliders, RefreshCw, AlertTriangle, ShieldCheck, TrendingDown, Activity, BookmarkPlus, CheckCircle2 } from "lucide-react";
 import { runWhatIfSimulation, createScenario } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import CroMathBreakdown from "@/components/common/CroMathBreakdown";
 
 interface ImpactData {
   estimated_losses: number;
@@ -395,6 +396,33 @@ export default function WhatIfPage() {
                 </div>
               </div>
 
+              {/* CRO Math Breakdown for What-If Simulator */}
+              <CroMathBreakdown
+                title="What-If Balance Sheet Sensitivity & Partial Derivative Methodology"
+                methodology="Evaluates multi-vector balance sheet shock sensitivity, computing post-stress Capital Adequacy Ratio (CAR) and partial derivatives across macro shock factors."
+                steps={[
+                  {
+                    step: 1,
+                    title: "Stressed Capital Adequacy Ratio (CAR) Equation",
+                    formula: "CAR_post = ( Capital_base - Loss_unemp - Asset_Drop_CRE - Outflow_Dep ) / ( RWA_stressed ) * 100%",
+                    explanation: "Deducts expected credit default losses and collateral write-downs from Tier 1 capital relative to stressed RWA.",
+                    evaluatedValue: `Post CAR: ${impact.post_stress_car}% (vs Baseline ${impact.baseline_car}%)`,
+                  },
+                  {
+                    step: 2,
+                    title: "Stressed Non-Performing Loan (NPL %) Shift",
+                    formula: "NPL_post = NPL_base + ( 1.8 * Delta_unemp ) + ( 0.4 * Delta_rate ) + ( 0.3 * CRE_Drop )",
+                    explanation: "Models NPL default probability shifts under combined macroeconomic stress vectors.",
+                    evaluatedValue: `Post NPL: ${impact.post_stress_npl}%`,
+                  },
+                  {
+                    step: 3,
+                    title: "Tornado Sensitivity Partial Derivatives (dCAR / dS_k)",
+                    formula: "Sensitivity_k = abs( dCAR / dFactor_k ) * Delta_Factor_k",
+                    explanation: "Calculates marginal CAR percentage point reduction contributed by each independent macroeconomic shock slider.",
+                  },
+                ]}
+              />
             </>
           ) : (
             <div className="h-64 flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-800 text-slate-500">

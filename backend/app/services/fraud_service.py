@@ -67,11 +67,11 @@ def evaluate_transaction(tx: Transaction, db: Session) -> FraudScanResult:
     amount = float(tx.amount)
     hour = tx.timestamp.hour if tx.timestamp else datetime.utcnow().hour
 
-    # Rule 1: Large amount
+    # Rule 1: Large amount (Standard transaction >= $10k)
     if amount >= 10000.0:
         rule_triggers.append("LARGE_TRANSACTION_AMOUNT (> $10k)")
 
-    # Rule 2: High velocity
+    # Rule 2: High velocity (3+ transactions within 5 minutes)
     recent_count_5m = 0
     recent_count_1h = 1
     if tx.customer_id and tx.timestamp:
@@ -88,21 +88,28 @@ def evaluate_transaction(tx: Transaction, db: Session) -> FraudScanResult:
             Transaction.timestamp <= tx.timestamp
         ).count()
 
-    if recent_count_5m >= 5:
-        rule_triggers.append("HIGH_VELOCITY (> 5 txns in 5 min)")
+    if recent_count_5m >= 3:
+        rule_triggers.append("HIGH_VELOCITY (> 3 txns in 5 min)")
 
-    # Rule 3: Midnight wire / transfer
-    if 0 <= hour <= 4 and amount >= 2000.0 and tx.type in ["transfer", "withdrawal"]:
-        rule_triggers.append("MIDNIGHT_HIGH_VALUE_WIRE")
+    # Rule 3: Midnight off-hours wire / transfer (0:00 - 5:00 AM, amount >= $2,000, wire/external/withdrawal)
+    if (0 <= hour <= 5) and (amount >= 2000.0) and (tx.type in ["transfer", "withdrawal"] or tx.category in ["wire", "external"]):
+        # Only trigger if not already a massive afternoon wire (keep rule distinct)
+        if amount < 10000.0 or (0 <= hour <= 4):
+            rule_triggers.append("MIDNIGHT_HIGH_VALUE_WIRE")
 
-    # Rule 4: High risk category
-    if tx.category in ["wire", "crypto", "external"] and amount >= 5000.0:
-        rule_triggers.append("HIGH_RISK_CATEGORY_TRANSFER")
+    # Rule 4: High risk category transfer (Crypto or external transfer)
+    if tx.category in ["crypto", "external"] and amount >= 3000.0:
+        # Trigger if crypto or distinct mid-range amount
+        if tx.category == "crypto" or amount < 10000.0:
+            rule_triggers.append("HIGH_RISK_CATEGORY_TRANSFER")
+
+    # Rule 5: Structuring / Smurfing pattern ($8,500 - $9,999 to bypass $10k threshold)
+    if 8500.0 <= amount < 10000.0 and tx.type in ["transfer", "withdrawal", "payment"]:
+        rule_triggers.append("RAPID_STRUCTURING_PATTERN ($8.5k-$9.9k)")
 
     # 2. ML Anomaly Score
     features = get_feature_vector(tx, recent_count_1h)
     raw_score = float(_model.decision_function([features])[0])  # negative = anomalous
-    # Convert raw decision score to 0..1 anomaly likelihood
     ml_anomaly_score = float(np.clip(1.0 / (1.0 + np.exp(raw_score * 5)), 0.0, 1.0))
 
     # 3. Combined Fraud Score (0-100)
@@ -119,7 +126,6 @@ def evaluate_transaction(tx: Transaction, db: Session) -> FraudScanResult:
     else:
         tier = "low"
 
-    # Flag transaction if high/critical
     is_flagged = combined_score >= 60.0
     if is_flagged and not tx.is_flagged:
         tx.is_flagged = True
@@ -170,22 +176,38 @@ def seed_anomaly_batch(db: Session):
     for i in range(120):
         c_id = custs[i % len(custs)].id if custs else None
 
-        if i % 8 == 0:  # Large Wire Anomaly
-            amount = round(float(np.random.uniform(12000, 75000)), 2)
+        if i % 12 == 0:
+            # 1. Pure Large Transaction Amount (> $10k) (Standard Retail/Payment at 2 PM)
+            amount = round(float(np.random.uniform(12000, 45000)), 2)
+            cat = "retail"
+            tx_type = "payment"
+            tx_time = (now - timedelta(days=i // 4)).replace(hour=14, minute=np.random.randint(10, 50))
+        elif i % 10 == 0:
+            # 2. Midnight High-Value Wire (2:30 AM wire transfer for $3,500 - $8,500)
+            amount = round(float(np.random.uniform(3500, 8500)), 2)
             cat = "wire"
             tx_type = "transfer"
-            tx_time = now - timedelta(minutes=i * 12)
-        elif i % 11 == 0:  # Midnight High Value Transfer
-            amount = round(float(np.random.uniform(3500, 25000)), 2)
-            cat = "external"
-            tx_type = "withdrawal"
-            tx_time = (now - timedelta(days=i // 5)).replace(hour=2, minute=np.random.randint(10, 50))
-        elif i % 7 == 0:  # Crypto Transfer Vector
-            amount = round(float(np.random.uniform(5500, 18000)), 2)
+            tx_time = (now - timedelta(days=i // 3)).replace(hour=2, minute=np.random.randint(10, 50))
+        elif i % 8 == 0:
+            # 3. High Risk Category Transfer (Mid-day Crypto transfer for $4,500 - $9,200)
+            amount = round(float(np.random.uniform(4500, 9200)), 2)
             cat = "crypto"
             tx_type = "transfer"
-            tx_time = now - timedelta(minutes=i * 5)
-        else:  # Normal Retail
+            tx_time = (now - timedelta(days=i // 3)).replace(hour=15, minute=np.random.randint(10, 50))
+        elif i % 15 == 0:
+            # 4. Structuring / Smurfing Pattern ($9,200 - $9,900)
+            amount = round(float(np.random.uniform(9200, 9900)), 2)
+            cat = "p2p"
+            tx_type = "transfer"
+            tx_time = (now - timedelta(days=i // 5)).replace(hour=11, minute=np.random.randint(10, 50))
+        elif i % 18 == 0:
+            # 5. Compound Multi-Vector Critical Threat ($65,000 Midnight Crypto Transfer)
+            amount = round(float(np.random.uniform(35000, 85000)), 2)
+            cat = "crypto"
+            tx_type = "transfer"
+            tx_time = (now - timedelta(days=i // 6)).replace(hour=3, minute=np.random.randint(10, 50))
+        else:
+            # Normal Retail / Utilities / Regular Payments
             amount = round(float(np.random.uniform(15, 850)), 2)
             cat = str(np.random.choice(["retail", "p2p", "utility"]))
             tx_type = str(np.random.choice(["payment", "transfer"]))

@@ -129,8 +129,49 @@ export const getWhatIfSensitivity = async () => {
   return (await API.get("/api/v1/what-if/sensitivity")).data;
 };
 
+export interface FrameworkInfo {
+  id: string;
+  name: string;
+  type: "local" | "international" | string;
+  description: string;
+  total_metrics: number;
+  passed_count: number;
+  warning_count: number;
+  failing_count: number;
+  status: "PASS" | "WARNING" | "BREACH" | string;
+}
+
+export interface ComplianceMetricItem {
+  metric_key: string;
+  name: string;
+  category: string;
+  framework_id: string;
+  framework_name: string;
+  framework_type: "local" | "international" | string;
+  value: number;
+  minimum: number;
+  buffer: number;
+  status: "pass" | "warning" | "fail" | string;
+  severity: "low" | "medium" | "high" | "critical" | string;
+  unit: string;
+  clause_reference?: string;
+  description?: string;
+  is_max_threshold?: boolean;
+}
+
+export interface ComplianceReportResponse {
+  overall_status: string;
+  total_metrics: number;
+  passed_count: number;
+  warning_count: number;
+  failing_count: number;
+  frameworks: FrameworkInfo[];
+  matrix: ComplianceMetricItem[];
+  generated_at: string;
+}
+
 // Compliance APIs
-export const getComplianceReport = async () => {
+export const getComplianceReport = async (): Promise<ComplianceReportResponse> => {
   return (await API.get("/api/v1/compliance/report")).data;
 };
 
@@ -138,7 +179,7 @@ export const getComplianceGaps = async () => {
   return (await API.get("/api/v1/compliance/gaps")).data;
 };
 
-export const runComplianceStressCheck = async (params: StressTestPayload) => {
+export const runComplianceStressCheck = async (params: StressTestPayload): Promise<ComplianceMetricItem[]> => {
   return (await API.post("/api/v1/compliance/stress-check", params)).data;
 };
 
@@ -235,6 +276,14 @@ export const runStressTest = async (payload: StressTestPayload): Promise<StressT
     return (await API.post("/api/v1/stress-test", payload)).data;
   } catch {
     return (await API.post("/api/stress-test", payload)).data;
+  }
+};
+
+export const runReverseStressTest = async (payload: any): Promise<any> => {
+  try {
+    return (await API.post("/api/v1/stress/reverse-test", payload)).data;
+  } catch {
+    return (await API.post("/api/stress/reverse-test", payload)).data;
   }
 };
 

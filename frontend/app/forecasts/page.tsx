@@ -25,6 +25,7 @@ import {
   Legend
 } from "recharts";
 import { getMetricForecast } from "@/lib/api";
+import CroMathBreakdown from "@/components/common/CroMathBreakdown";
 import { ThreeDPieChart } from "@/components/charts/ThreeDPieChart";
 
 const PIE_COLORS_2 = ["#38bdf8", "#818cf8", "#c084fc"]; // Base (Sky), 80% CI (Indigo), 95% Tail (Purple)
@@ -322,10 +323,39 @@ export default function ForecastsPage() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-              Loading forecast projection model...
+            <div className="h-full flex items-center justify-center text-slate-500 text-xs font-mono">
+              No statistical forecast data generated yet.
             </div>
           )}
+        </div>
+
+        {/* CRO Math Breakdown for Predictive Time-Series Forecasting */}
+        <div className="px-6 pb-6">
+          <CroMathBreakdown
+            title={`Time-Series Predictive Forecasting Methodology — ${metric.toUpperCase()}`}
+            methodology={`Evaluates Holt-Winters Triple Exponential Smoothing & ARIMA statistical time-series projections over a ${horizon}-day forward horizon.`}
+            steps={[
+              {
+                step: 1,
+                title: "Holt-Winters Exponential Smoothing State Model",
+                formula: "y_hat_(t+h|t) = Level_t + h * Trend_t + Seasonality_(t+h-m)",
+                explanation: "Decomposes historical baseline data into level, trend growth vector, and seasonal variance components.",
+              },
+              {
+                step: 2,
+                title: "Statistical 95% Confidence Interval Radius",
+                formula: "Confidence_Bound_(t+h) = y_hat_(t+h) +/- 1.96 * sigma_h",
+                explanation: "Calculates upper and lower confidence envelopes at a 95% two-tailed Gaussian confidence radius.",
+                evaluatedValue: `95% CI Range: ${kpis.baseline.toFixed(2)} to ${kpis.endpoint.toFixed(2)}`,
+              },
+              {
+                step: 3,
+                title: "Horizon Volatility Variance Accumulation",
+                formula: "sigma_h = sigma_base * sqrt( 1 + Sum_{i=1}^{h-1}( psi_i^2 ) )",
+                explanation: "Applies variance growth factor as horizon h expands, widening confidence bands appropriately over time.",
+              },
+            ]}
+          />
         </div>
       </div>
 

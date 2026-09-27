@@ -25,6 +25,10 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
   const [scenarioName, setScenarioName] = React.useState(initialParams?.scenario_name || "Custom Stress Scenario");
   const [unemploymentShock, setUnemploymentShock] = React.useState(initialParams?.unemployment_shock ?? 0.05);
   const [rateShock, setRateShock] = React.useState(initialParams?.rate_shock ?? 0.02);
+  const [copulaType, setCopulaType] = React.useState<"gaussian" | "student_t">(
+    (initialParams?.copula_type as "student_t") || "gaussian"
+  );
+  const [degreesOfFreedom, setDegreesOfFreedom] = React.useState(initialParams?.degrees_of_freedom ?? 5);
   const [nSims, setNSims] = React.useState(initialParams?.n_sims ?? 1000);
   const [horizonMonths, setHorizonMonths] = React.useState(initialParams?.horizon_months ?? 24);
   const [activePreset, setActivePreset] = React.useState<string | null>(null);
@@ -43,6 +47,8 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       scenario_name: newTitle,
       unemployment_shock: preset.unemp,
       rate_shock: preset.rate,
+      copula_type: copulaType,
+      degrees_of_freedom: degreesOfFreedom,
       n_sims: preset.sims,
       horizon_months: preset.horizon,
       seed: Math.floor(Math.random() * 100000),
@@ -55,6 +61,8 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       scenario_name: scenarioName,
       unemployment_shock: unemploymentShock,
       rate_shock: rateShock,
+      copula_type: copulaType,
+      degrees_of_freedom: degreesOfFreedom,
       n_sims: nSims,
       horizon_months: horizonMonths,
       seed: Math.floor(Math.random() * 100000),
@@ -178,6 +186,62 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
             className="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
           />
           <p className="text-[10px] text-slate-400">Shifts loan interest yield and borrower debt service burden</p>
+        </div>
+
+        {/* Vasicek Copula Model Selector */}
+        <div className="space-y-2 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+              <span>Vasicek Copula Model</span>
+            </span>
+            <Badge variant="info" className="text-[10px]">
+              {copulaType === "student_t" ? `Student-t (ν=${degreesOfFreedom})` : "Gaussian"}
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setCopulaType("gaussian")}
+              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                copulaType === "gaussian"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-bold"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Gaussian Copula
+            </button>
+            <button
+              type="button"
+              onClick={() => setCopulaType("student_t")}
+              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                copulaType === "student_t"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/20 font-bold"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Student's t-Copula
+            </button>
+          </div>
+
+          {copulaType === "student_t" && (
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <span>Tail Dependence DF (ν)</span>
+                <span className="font-mono text-purple-400 font-bold">ν = {degreesOfFreedom}</span>
+              </div>
+              <input
+                type="range"
+                min="3"
+                max="15"
+                step="1"
+                value={degreesOfFreedom}
+                onChange={(e) => setDegreesOfFreedom(parseInt(e.target.value))}
+                className="w-full accent-purple-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+              />
+              <p className="text-[10px] text-purple-300/80">Lower ν = heavier tail correlation & joint default spikes</p>
+            </div>
+          )}
         </div>
 
         {/* Advanced Options Toggle */}

@@ -40,6 +40,8 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
+import CroMathBreakdown from "@/components/common/CroMathBreakdown";
+
 export function SegmentBar({ data, title }: SegmentBarProps) {
   if (!data || data.length === 0) {
     return <div className="text-slate-500 text-sm p-4">No segment data.</div>;
@@ -48,7 +50,7 @@ export function SegmentBar({ data, title }: SegmentBarProps) {
   const COLORS = ["#6366f1", "#38bdf8", "#fbbf24", "#f43f5e", "#a855f7", "#34d399"];
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-3">
       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 font-mono">{title}</h4>
       <div className="w-full h-52">
         <ResponsiveContainer width="100%" height="100%">
@@ -65,6 +67,25 @@ export function SegmentBar({ data, title }: SegmentBarProps) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      <CroMathBreakdown
+        title={`Segment Concentration Methodology — ${title}`}
+        methodology="Evaluates portfolio risk concentration across loan asset classes and regional geographies under stressed LGD vectors."
+        steps={[
+          {
+            step: 1,
+            title: "Segment Risk-Weighted Loss Aggregation",
+            formula: "Segment_Loss_k = Sum_{i in Segment_k}( Exposure_i * PD_i * LGD_i * (1 + Shock) )",
+            explanation: "Aggregates segment loss expectation by applying asset-specific Loss Given Default (LGD) factors.",
+          },
+          {
+            step: 2,
+            title: "Segment Concentration Loss Rate (%)",
+            formula: "Loss_Rate_k = ( Segment_Loss_k / Segment_Total_Outstanding_k ) * 100%",
+            explanation: "Calculates the percentage credit loss rate relative to total outstanding principal in that segment.",
+          },
+        ]}
+      />
     </div>
   );
 }

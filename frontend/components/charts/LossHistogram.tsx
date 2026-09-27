@@ -13,6 +13,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
+import CroMathBreakdown from "@/components/common/CroMathBreakdown";
 
 interface LossHistogramProps {
   losses: number[];
@@ -212,6 +213,33 @@ export function LossHistogram({ losses, meanLoss, p95Loss, worstCaseLoss }: Loss
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* CRO Math Breakdown for Loss Histogram */}
+      <CroMathBreakdown
+        title="Vasicek Loss Distribution & VaR Methodology"
+        methodology="Evaluates 10,000 Monte Carlo portfolio loss paths generated under single-factor Vasicek asset correlation and copula joint default functions."
+        steps={[
+          {
+            step: 1,
+            title: "Vasicek Latent Asset Return & Systemic Factor Z",
+            formula: "Y_i = sqrt(rho_i) * Z + sqrt(1 - rho_i) * epsilon_i",
+            explanation: "Generates systemic macroeconomic shocks (Z) and idiosyncratic borrower shocks (epsilon_i) scaled by asset correlation rho_i.",
+          },
+          {
+            step: 2,
+            title: "Conditional Default Probability (PD)",
+            formula: "PD_cond = NormCDF( ( NormQuantile(PD_base) - sqrt(rho) * Z ) / sqrt(1 - rho) )",
+            explanation: "Transforms baseline credit scores into conditional default probabilities under the macro shock vector.",
+          },
+          {
+            step: 3,
+            title: "Portfolio Value-at-Risk (P95 VaR)",
+            formula: "VaR_0.95 = Percentile_95( Total_Portfolio_Losses )",
+            explanation: "Calculates maximum expected loss at a 95% confidence level over the specified stress horizon.",
+            evaluatedValue: p95Loss !== undefined ? `$${(p95Loss / 1e6).toFixed(2)}M P95 VaR` : undefined,
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -95,6 +95,8 @@ export interface StressTestPayload {
   scenario_name: string;
   unemployment_shock: number;
   rate_shock: number;
+  copula_type?: "gaussian" | "student_t" | string;
+  degrees_of_freedom?: number;
   n_sims: number;
   horizon_months: number;
   seed?: number;
@@ -120,6 +122,9 @@ export interface SegmentImpact {
 
 export interface StressTestResponse {
   scenario_name: string;
+  copula_type?: string;
+  degrees_of_freedom?: number;
+  copula_label?: string;
   params: StressTestPayload;
   summary: StressSummary;
   distribution: number[];
@@ -129,6 +134,46 @@ export interface StressTestResponse {
     by_type: SegmentImpact[];
     by_region: SegmentImpact[];
   };
+}
+
+export interface MitigationActions {
+  capital_injection: number;
+  portfolio_derisk_pct: number;
+  npl_provision_boost: number;
+  liquidity_facility_drawdown: number;
+}
+
+export interface ReverseStressPayload {
+  scenario_name: string;
+  target_metric: "car_breach" | "solvency_breach" | "loss_threshold" | string;
+  target_value: number;
+  copula_type?: "gaussian" | "student_t" | string;
+  degrees_of_freedom?: number;
+  n_sims: number;
+  horizon_months: number;
+  actions?: MitigationActions;
+}
+
+export interface TwoWayComparison {
+  metric_name: string;
+  pre_mitigation: string;
+  post_mitigation: string;
+  delta: string;
+  status: "RECOVERED" | "IMPROVED" | "UNCHANGED" | "BREACHED" | string;
+}
+
+export interface ReverseStressResponse {
+  scenario_name: string;
+  target_metric: string;
+  target_value: number;
+  copula_type: string;
+  degrees_of_freedom: number;
+  breaking_shock: { unemployment_shock: number; rate_shock: number };
+  pre_mitigation_results: StressTestResponse;
+  post_mitigation_results: StressTestResponse;
+  comparison: TwoWayComparison[];
+  mitigation_status: "RECOVERED" | "PARTIALLY_MITIGATED" | "INSUFFICIENT_ACTION" | string;
+  summary_advisory: string;
 }
 
 export interface StressRunOut {

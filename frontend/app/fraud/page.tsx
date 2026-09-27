@@ -19,6 +19,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recha
 import { getFraudAlerts, trainFraudModel, scanFraudTransactions } from "@/lib/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CroMathBreakdown } from "@/components/common/CroMathBreakdown";
 
 const RISK_COLORS = {
   critical: "#f43f5e", // rose-500
@@ -35,10 +36,10 @@ const FALLBACK_ALERTS = [
     transaction_id: "tx_9a81f3c2-482a-4b91-9128",
     customer_id: "cust_821a",
     amount: 64500.0,
-    type: "transfer",
-    category: "wire",
+    type: "payment",
+    category: "retail",
     timestamp: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
-    rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)", "HIGH_RISK_CATEGORY_TRANSFER"],
+    rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)"],
     ml_anomaly_score: 0.942,
     fraud_score: 91.5,
     risk_tier: "critical",
@@ -47,11 +48,11 @@ const FALLBACK_ALERTS = [
   {
     transaction_id: "tx_7e4b2d11-391e-4c22-810a",
     customer_id: "cust_194b",
-    amount: 28400.0,
-    type: "withdrawal",
-    category: "external",
+    amount: 4800.0,
+    type: "transfer",
+    category: "wire",
     timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    rule_triggers: ["MIDNIGHT_HIGH_VALUE_WIRE", "HIGH_RISK_CATEGORY_TRANSFER"],
+    rule_triggers: ["MIDNIGHT_HIGH_VALUE_WIRE"],
     ml_anomaly_score: 0.884,
     fraud_score: 86.2,
     risk_tier: "critical",
@@ -60,11 +61,11 @@ const FALLBACK_ALERTS = [
   {
     transaction_id: "tx_3b19c8f0-1092-4f11-9a4c",
     customer_id: "cust_5521",
-    amount: 14800.0,
+    amount: 7200.0,
     type: "transfer",
     category: "crypto",
     timestamp: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
-    rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)", "HIGH_VELOCITY (> 5 txns in 5 min)"],
+    rule_triggers: ["HIGH_RISK_CATEGORY_TRANSFER"],
     ml_anomaly_score: 0.795,
     fraud_score: 78.4,
     risk_tier: "high",
@@ -73,11 +74,11 @@ const FALLBACK_ALERTS = [
   {
     transaction_id: "tx_2c88f99e-5192-4a00-bb7e",
     customer_id: "cust_3309",
-    amount: 19500.0,
+    amount: 9650.0,
     type: "transfer",
-    category: "wire",
+    category: "p2p",
     timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)"],
+    rule_triggers: ["RAPID_STRUCTURING_PATTERN ($8.5k-$9.9k)"],
     ml_anomaly_score: 0.712,
     fraud_score: 72.1,
     risk_tier: "high",
@@ -86,11 +87,11 @@ const FALLBACK_ALERTS = [
   {
     transaction_id: "tx_5d2104aa-7182-4112-990e",
     customer_id: "cust_6712",
-    amount: 8750.0,
+    amount: 1450.0,
     type: "withdrawal",
     category: "external",
     timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-    rule_triggers: ["MIDNIGHT_HIGH_VALUE_WIRE"],
+    rule_triggers: ["HIGH_VELOCITY (> 3 txns in 5 min)"],
     ml_anomaly_score: 0.654,
     fraud_score: 64.8,
     risk_tier: "high",
@@ -99,41 +100,15 @@ const FALLBACK_ALERTS = [
   {
     transaction_id: "tx_1f8872cb-9011-4710-aa55",
     customer_id: "cust_9921",
-    amount: 9200.0,
+    amount: 58000.0,
     type: "transfer",
     category: "crypto",
     timestamp: new Date(Date.now() - 1000 * 60 * 320).toISOString(),
-    rule_triggers: ["HIGH_RISK_CATEGORY_TRANSFER"],
-    ml_anomaly_score: 0.582,
-    fraud_score: 54.3,
-    risk_tier: "medium",
-    is_flagged: false,
-  },
-  {
-    transaction_id: "tx_8b33410f-2194-4b55-a012",
-    customer_id: "cust_4410",
-    amount: 6300.0,
-    type: "transfer",
-    category: "wire",
-    timestamp: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
-    rule_triggers: ["HIGH_RISK_CATEGORY_TRANSFER"],
-    ml_anomaly_score: 0.495,
-    fraud_score: 48.6,
-    risk_tier: "medium",
-    is_flagged: false,
-  },
-  {
-    transaction_id: "tx_4e99120c-7712-4211-884b",
-    customer_id: "cust_2104",
-    amount: 5100.0,
-    type: "transfer",
-    category: "p2p",
-    timestamp: new Date(Date.now() - 1000 * 60 * 510).toISOString(),
-    rule_triggers: ["HIGH_VELOCITY (> 5 txns in 5 min)"],
-    ml_anomaly_score: 0.431,
-    fraud_score: 42.0,
-    risk_tier: "medium",
-    is_flagged: false,
+    rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)", "MIDNIGHT_HIGH_VALUE_WIRE", "HIGH_RISK_CATEGORY_TRANSFER"],
+    ml_anomaly_score: 0.982,
+    fraud_score: 98.3,
+    risk_tier: "critical",
+    is_flagged: true,
   },
 ];
 
@@ -202,25 +177,60 @@ export default function FraudPage() {
   };
 
   const handleTriggerAnomaly = () => {
+    const threatTypes = [
+      {
+        rule: "LARGE_TRANSACTION_AMOUNT (> $10k)",
+        category: "retail",
+        type: "payment",
+        amount: Math.round(15000 + Math.random() * 45000),
+      },
+      {
+        rule: "MIDNIGHT_HIGH_VALUE_WIRE",
+        category: "wire",
+        type: "transfer",
+        amount: Math.round(3500 + Math.random() * 5000),
+      },
+      {
+        rule: "HIGH_RISK_CATEGORY_TRANSFER",
+        category: "crypto",
+        type: "transfer",
+        amount: Math.round(4500 + Math.random() * 4000),
+      },
+      {
+        rule: "RAPID_STRUCTURING_PATTERN ($8.5k-$9.9k)",
+        category: "p2p",
+        type: "transfer",
+        amount: Math.round(8900 + Math.random() * 950),
+      },
+      {
+        rule: "HIGH_VELOCITY (> 3 txns in 5 min)",
+        category: "external",
+        type: "withdrawal",
+        amount: Math.round(1200 + Math.random() * 1800),
+      },
+    ];
+
+    const chosen = threatTypes[Math.floor(Math.random() * threatTypes.length)];
+
     const newThreat = {
       transaction_id: `tx_${Math.random().toString(36).substring(2, 10)}`,
       customer_id: `cust_${Math.floor(1000 + Math.random() * 9000)}`,
-      amount: Math.round(15000 + Math.random() * 85000),
-      type: "transfer",
-      category: Math.random() > 0.5 ? "crypto" : "wire",
+      amount: chosen.amount,
+      type: chosen.type,
+      category: chosen.category,
       timestamp: new Date().toISOString(),
-      rule_triggers: ["LARGE_TRANSACTION_AMOUNT (> $10k)", "HIGH_RISK_CATEGORY_TRANSFER"],
+      rule_triggers: [chosen.rule],
       ml_anomaly_score: +(0.85 + Math.random() * 0.12).toFixed(3),
-      fraud_score: +(88 + Math.random() * 11).toFixed(1),
-      risk_tier: "critical",
+      fraud_score: +(82 + Math.random() * 15).toFixed(1),
+      risk_tier: chosen.amount >= 10000 ? "critical" : "high",
       is_flagged: true,
     };
 
     setAlertsData((prev: any) => {
       const existing = prev?.alerts || FALLBACK_ALERTS;
       const updatedAlerts = [newThreat, ...existing];
-      const crit = updatedAlerts.filter((a) => a.risk_tier === "critical").length;
-      const hg = updatedAlerts.filter((a) => a.risk_tier === "high").length;
+      const crit = updatedAlerts.filter((a: any) => a.risk_tier === "critical").length;
+      const hg = updatedAlerts.filter((a: any) => a.risk_tier === "high").length;
       return {
         alerts: updatedAlerts,
         total_alerts: updatedAlerts.length,
@@ -229,8 +239,8 @@ export default function FraudPage() {
       };
     });
 
-    toast.error(`🔥 Live Anomaly Intercepted: $${newThreat.amount.toLocaleString()} ${newThreat.category.toUpperCase()} Wire`, {
-      description: "Critical risk score flagged by IsolationForest ML Sentinel",
+    toast.error(`🔥 Live Anomaly Intercepted: $${newThreat.amount.toLocaleString()} ${newThreat.category.toUpperCase()} (${chosen.rule})`, {
+      description: "Triggered by IsolationForest ML & Rules Sentinel",
     });
   };
 
@@ -526,6 +536,35 @@ export default function FraudPage() {
           </div>
         </div>
       </div>
+
+      {/* Expandable CRO Mathematical Overview for Fraud Intelligence */}
+      <CroMathBreakdown
+        title="CRO IsolationForest ML & Anomaly Scoring Evaluation"
+        methodology="Unsupervised IsolationForest tree partitioning combined with heuristic transaction velocity and structuring rules. Calculates individual path length expectation E(h(x)) to detect multi-dimensional feature space outliers."
+        steps={[
+          {
+            step: 1,
+            title: "IsolationForest Path Length Anomaly Scoring",
+            formula: "s(x, n) = 2^(- E(h(x)) / c(n)),   where c(n) = 2 [ln(n-1) + 0.5772] - (2(n-1)/n)",
+            explanation: "Measures tree depth h(x) required to isolate point x. Points isolated near tree root (small h(x)) yield anomaly scores s(x,n) close to 1.0, signifying high fraud probability.",
+            evaluatedValue: `Max Anomaly Score: 0.982`,
+          },
+          {
+            step: 2,
+            title: "Feature Vectorization & Z-Score Normalization",
+            formula: "x_i = [ (Amount - μ_A)/σ_A,  Velocity_5m,  HighRiskCategory_flag,  Structuring_flag ]",
+            explanation: "Continuous dollar amounts are normalized against historical cohort distributions. Multi-vector rules act as orthogonal feature dimensions.",
+            evaluatedValue: "4 Feature Dimensions",
+          },
+          {
+            step: 3,
+            title: "Composite Risk Score & Exposure Aggregation",
+            formula: "FraudScore = min(100,  100 * [ 0.60 * s(x,n) + 0.40 * sum(Rule_Weight_k) ])",
+            explanation: "Blends ML statistical outlier probability with deterministic regulatory policy triggers to tier alerts into Critical, High, Medium, and Low risk buckets.",
+            evaluatedValue: `At-Risk Capital: $${(totalExposure / 1000).toFixed(1)}k`,
+          },
+        ]}
+      />
 
       {/* Flagged Transactions Table Controls */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">

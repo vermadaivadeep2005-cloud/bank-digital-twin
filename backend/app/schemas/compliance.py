@@ -2,16 +2,34 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 
 
+class FrameworkInfo(BaseModel):
+    id: str           # basel, rbi, swift, fatf
+    name: str         # Basel III / IV, RBI Framework, SWIFT Banking, FATF Standards
+    type: str         # local, international
+    description: str
+    total_metrics: int
+    passed_count: int
+    warning_count: int
+    failing_count: int
+    status: str       # PASS, WARNING, BREACH
+
+
 class ComplianceMetricItem(BaseModel):
     metric_key: str
     name: str
-    category: str  # Basel III, CCAR, DFAST, Liquidity
+    category: str        # Capital Adequacy, Monetary Policy, Cyber Security, AML/CFT
+    framework_id: str    # basel, rbi, swift, fatf
+    framework_name: str  # Basel III / IV, RBI Regulatory Framework, SWIFT Banking, FATF Standards
+    framework_type: str  # local, international
     value: float
     minimum: float
     buffer: float
-    status: str    # pass, warning, fail
-    severity: str  # low, medium, high, critical
-    unit: str      # %, $M
+    status: str          # pass, warning, fail
+    severity: str        # low, medium, high, critical
+    unit: str            # %, $M, score
+    clause_reference: Optional[str] = None
+    description: Optional[str] = None
+    is_max_threshold: Optional[bool] = False
 
 
 class ComplianceReportResponse(BaseModel):
@@ -20,6 +38,7 @@ class ComplianceReportResponse(BaseModel):
     passed_count: int
     warning_count: int
     failing_count: int
+    frameworks: List[FrameworkInfo]
     matrix: List[ComplianceMetricItem]
     generated_at: str
 
@@ -32,3 +51,4 @@ class ComplianceGapsResponse(BaseModel):
 class StressCheckRequest(BaseModel):
     unemployment_shock: float = 0.15
     rate_shock: float = 0.04
+
