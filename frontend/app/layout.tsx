@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import AppShell from "@/components/layout/AppShell";
 import { Providers } from "@/app/providers";
 

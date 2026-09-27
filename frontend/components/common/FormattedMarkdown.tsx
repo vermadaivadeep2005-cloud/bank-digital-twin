@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import katex from "katex";
 
 interface FormattedMarkdownProps {
   content: string;
@@ -10,9 +11,8 @@ interface FormattedMarkdownProps {
 /**
  * FormattedMarkdown renders raw LLM text into rich HTML:
  * - Markdown Tables -> Clean styled HTML <table>
- * - LaTeX Math Equations (\[ ... \], \( ... \), \frac{a}{b}) -> Formatted math formula cards
+ * - Publication-grade LaTeX Math Equations via KaTeX (\mathbf{X}, \mathbf{\varepsilon}, \sim, \mu, \frac{a}{b})
  * - Headers, Lists, Bold, Italic, Code tags
- * - Cleans up awkward raw tokens like **, --, or raw pipes
  */
 export function FormattedMarkdown({ content, className = "" }: FormattedMarkdownProps) {
   const elements = React.useMemo(() => {
@@ -100,8 +100,8 @@ export function FormattedMarkdown({ content, className = "" }: FormattedMarkdown
           .trim();
 
         outputNodes.push(
-          <div key={`math-${idx}`} className="my-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950/80 to-slate-950 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex justify-center items-center shadow-lg shadow-indigo-500/20 overflow-x-auto">
-            {renderFormattedMath(rawMath)}
+          <div key={`math-${idx}`} className="my-3.5 p-3.5 rounded-2xl bg-slate-950/90 border border-cyan-500/40 text-cyan-200 text-xs flex justify-center items-center shadow-lg shadow-indigo-500/10 overflow-x-auto">
+            {renderKaTeX(rawMath, true)}
           </div>
         );
         continue;
@@ -223,65 +223,56 @@ function parseMarkdownTable(lines: string[]): { headers: string[]; rows: string[
 }
 
 /**
- * Renders LaTeX math equations cleanly with numerator over denominator fractions and symbols.
+ * Renders LaTeX math via KaTeX cleanly.
  */
-function renderFormattedMath(mathStr: string): React.ReactNode {
-  const clean = mathStr
-    .replace(/\\text\s*\{([^}]+)\}/g, "$1")
-    .replace(/\\times/g, " × ")
-    .replace(/\\approx/g, " ≈ ")
-    .replace(/\\ge(q)?/g, " ≥ ")
-    .replace(/\\le(q)?/g, " ≤ ")
-    .replace(/\\%/g, "%")
-    .replace(/\\cdot/g, " · ");
-
-  // Handle \frac{A}{B}
-  const fracRegex = /\\frac\s*\{([^}]+)\}\s*\{([^}]+)\}/g;
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = fracRegex.exec(clean)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(clean.substring(lastIndex, match.index));
-    }
-
-    const num = match[1];
-    const den = match[2];
-
-    parts.push(
-      <span key={match.index} className="inline-flex flex-col items-center justify-center align-middle mx-1.5 my-1">
-        <span className="border-b border-cyan-400 px-1 py-0.5 text-center font-semibold text-white">
-          {num}
-        </span>
-        <span className="px-1 py-0.5 text-center text-slate-300">
-          {den}
-        </span>
-      </span>
+function renderKaTeX(mathExpr: string, displayMode = false): React.ReactNode {
+  try {
+    const html = katex.renderToString(mathExpr, {
+      displayMode,
+      throwOnError: false,
+    });
+    return (
+      <span
+        dangerouslySetInnerHTML={{ __html: html }}
+        className={displayMode ? "katex-display-container inline-block" : "katex-inline-container inline-block align-middle px-0.5"}
+      />
     );
-
-    lastIndex = fracRegex.lastIndex;
+  } catch {
+    return <code className="font-mono text-cyan-300 text-xs">{mathExpr}</code>;
   }
-
-  if (lastIndex < clean.length) {
-    parts.push(clean.substring(lastIndex));
-  }
-
-  return <div className="flex items-center flex-wrap gap-1 leading-snug">{parts}</div>;
 }
 
 /**
- * Parses inline markdown syntax: **bold**, *italic*, `code`, inline math \(...\), and text nodes.
+ * Parses inline syntax: LaTeX math ($...$, \(...\), \mathbf{...}), **bold**, *italic*, `code`, and text.
  */
 function parseInlineStyles(text: string): React.ReactNode[] {
-  // Replace inline math \( ... \) with clean math formatting
-  const inlineMathCleaned = text.replace(/\\\((.*?)\\\)/g, "$1");
+  // Regex to split on inline math ($...$, \(...\), \mathbf{...}), bold, italic, code
+  const pattern = /(\$\$[^\$]+\$\$|\\\[[\s\S]*?\\\]|\\\([^\)]+\\\)|\$[^\$]+\$|\\mathbf\{[^}]+\}(?:\^(?:\{[^}]+\}|\([^\)]+\)|\w+)|_(?:\{[^}]+\}|\([^\)]+\)|\w+))?|\\(?:mathbf|varepsilon|mu|alpha|beta|sigma|lambda|gamma|delta|theta|phi|rho|omega|tau|psi|eta|kappa|chi|sum|int|frac|sqrt|left|right|sim)\b[^\s,;:()]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
 
-  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
-  const parts = inlineMathCleaned.split(pattern);
+  const parts = text.split(pattern);
 
   return parts.map((part, idx) => {
     if (!part) return null;
+
+    // Inline display math $$...$$ or \[...\]
+    if ((part.startsWith("$$") && part.endsWith("$$")) || (part.startsWith("\\[") && part.endsWith("\\]"))) {
+      const expr = part.replace(/^(\$\$|\\\[)/, "").replace(/(\$\$|\\\])$/, "").trim();
+      return <span key={idx}>{renderKaTeX(expr, true)}</span>;
+    }
+
+    // Inline math $...$ or \(...\) or raw TeX macro like \mathbf{...}
+    if (
+      (part.startsWith("$") && part.endsWith("$") && part.length > 2) ||
+      (part.startsWith("\\(") && part.endsWith("\\)")) ||
+      part.startsWith("\\mathbf") ||
+      part.startsWith("\\frac") ||
+      part.startsWith("\\sim") ||
+      part.startsWith("\\mu") ||
+      part.startsWith("\\varepsilon")
+    ) {
+      const expr = part.replace(/^(\$|\\\()/, "").replace(/(\$|\\\))$/, "").trim();
+      return <span key={idx}>{renderKaTeX(expr, false)}</span>;
+    }
 
     // **bold**
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
