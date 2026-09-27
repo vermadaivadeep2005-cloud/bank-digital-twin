@@ -55,8 +55,6 @@ async def lifespan(app: FastAPI):
                     full_name=name,
                     role="analyst"
                 ))
-            else:
-                u.hashed_password = hash_password(pwd)
         db.commit()
     except Exception:
         db.rollback()
