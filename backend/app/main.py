@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query, HTTPException, status
+from fastapi import FastAPI, Depends, Query, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -16,7 +16,7 @@ from app.api.router import api_router
 
 # Services for backward compatibility aliases
 from app.services.kpi_service import compute_kpis
-from app.services.generator_service import seed_database
+from app.services.generator_service import seed_database, import_csv_bank_data
 from app.services.stress_service import run_and_persist_stress_test
 from app.simulation.monte_carlo import run_monte_carlo_vectorized
 from app.models.customer import Customer
@@ -114,6 +114,24 @@ def root():
 def legacy_generate(n_customers: int = 5000, db: Session = Depends(get_db)):
     stats = seed_database(db, n_customers=n_customers)
     return {"message": "generated", **stats}
+
+
+@app.post("/api/generate/import-csv", tags=["Legacy Compatibility"])
+@app.post("/api/import-csv", tags=["Legacy Compatibility"])
+async def legacy_import_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files (.csv) are supported.")
+    try:
+        content = await file.read()
+        csv_text = content.decode("utf-8")
+        stats = import_csv_bank_data(db, csv_text)
+        return {
+            "status": "success",
+            "message": f"Successfully imported {stats['customers']} portfolio records from CSV.",
+            **stats,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to import CSV: {str(e)}")
 
 
 @app.get("/api/customers", tags=["Legacy Compatibility"])
