@@ -425,32 +425,39 @@ export default function OverviewPage() {
             <p className="text-xs text-slate-500 p-4 text-center">No stress test runs recorded yet. Run a simulation from the Stress Engine.</p>
           ) : (
             <div className="divide-y divide-slate-800/60 overflow-x-auto">
-              {stressRuns.slice(0, 5).map((run) => (
-                <div key={run.id} className="py-3 flex items-center justify-between text-xs">
-                  <div className="space-y-1">
-                    <p className="font-semibold text-white">{run.scenario_name}</p>
-                    <p className="text-[11px] font-mono text-slate-400">
-                      Unemployment Shock: +{(run.params.unemployment_shock * 100).toFixed(1)} pp | Rate Shock: {(run.params.rate_shock * 100).toFixed(1)} pp
-                    </p>
-                  </div>
+              {stressRuns.slice(0, 5).map((run) => {
+                const survivedPct = run.results?.survived_pct ?? run.results?.summary?.survived_pct ?? 0;
+                const expectedLoss = run.results?.summary?.expected_loss ?? run.results?.expected_loss ?? 0;
+                const unempShock = (run.params?.unemployment_shock ?? 0) * 100;
+                const rateShock = (run.params?.rate_shock ?? 0) * 100;
 
-                  <div className="flex items-center gap-4 text-right">
-                    <div>
-                      <span className="text-[10px] font-mono text-slate-500 block uppercase">Survival</span>
-                      <Badge variant={run.results.survived_pct >= 95 ? "success" : run.results.survived_pct >= 80 ? "warning" : "danger"}>
-                        {run.results.survived_pct.toFixed(1)}%
-                      </Badge>
+                return (
+                  <div key={run.id} className="py-3 flex items-center justify-between text-xs">
+                    <div className="space-y-1">
+                      <p className="font-semibold text-white">{run.scenario_name}</p>
+                      <p className="text-[11px] font-mono text-slate-400">
+                        Unemployment Shock: +{unempShock.toFixed(1)} pp | Rate Shock: {rateShock.toFixed(1)} pp
+                      </p>
                     </div>
 
-                    <div>
-                      <span className="text-[10px] font-mono text-slate-500 block uppercase">Expected Loss</span>
-                      <span className="font-mono text-slate-200 font-semibold">{formatCurrency(run.results.summary.expected_loss, true)}</span>
-                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-500 block uppercase">Survival</span>
+                        <Badge variant={survivedPct >= 95 ? "success" : survivedPct >= 80 ? "warning" : "danger"}>
+                          {survivedPct.toFixed(1)}%
+                        </Badge>
+                      </div>
 
-                    <span className="text-[10px] font-mono text-slate-500 hidden sm:block">{formatDate(run.created_at)}</span>
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-500 block uppercase">Expected Loss</span>
+                        <span className="font-mono text-slate-200 font-semibold">{formatCurrency(expectedLoss, true)}</span>
+                      </div>
+
+                      <span className="text-[10px] font-mono text-slate-500 hidden sm:block">{formatDate(run.created_at)}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
