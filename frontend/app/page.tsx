@@ -112,12 +112,6 @@ export default function OverviewPage() {
     }
   };
 
-  const handleExportSummaryJson = () => {
-    if (!kpis) return;
-    downloadJson(kpis, `bank_kpis_summary_${Date.now()}.json`);
-    toast.success("Downloaded bank summary JSON");
-  };
-
   const handleExportSummaryCsv = () => {
     if (!kpis) return;
     const headers = ["Metric", "Value"];
@@ -192,26 +186,15 @@ export default function OverviewPage() {
           <h2 className="text-[11px] font-mono tracking-widest uppercase text-slate-500 font-semibold">
             CORE FINANCIAL METRICS & RWA CAPITAL RATIOS
           </h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              onClick={handleExportSummaryJson}
-              disabled={!kpis}
-              variant="outline"
-              size="sm"
-              className="bg-slate-900/80 border-slate-700 hover:bg-slate-800 text-white font-medium text-xs h-8"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export Summary (JSON)</span>
-            </Button>
-
+          <div className="flex items-center gap-2.5 flex-wrap">
             <Button
               onClick={handleExportSummaryCsv}
               disabled={!kpis}
               variant="outline"
               size="sm"
-              className="bg-slate-900/80 border-slate-700 hover:bg-slate-800 text-white font-medium text-xs h-8"
+              className="backdrop-blur-md bg-slate-900/40 border border-slate-700/60 hover:bg-slate-800/70 hover:border-slate-500/80 text-slate-200 font-medium text-xs h-9 px-3.5 shadow-sm rounded-xl transition-all duration-200"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
               <span>Download CSV</span>
             </Button>
 
@@ -220,7 +203,7 @@ export default function OverviewPage() {
               disabled={!kpis}
               variant="outline"
               size="sm"
-              className="bg-slate-900/80 border-slate-700 hover:bg-slate-800 text-white font-medium text-xs h-8"
+              className="backdrop-blur-md bg-slate-900/40 border border-slate-700/60 hover:bg-slate-800/70 hover:border-slate-500/80 text-slate-200 font-medium text-xs h-9 px-3.5 shadow-sm rounded-xl transition-all duration-200"
             >
               <FileText className="w-3.5 h-3.5 text-cyan-400" />
               <span>Polished PDF Report</span>
@@ -231,19 +214,19 @@ export default function OverviewPage() {
               loading={generating}
               variant="outline"
               size="sm"
-              className="bg-slate-900/80 border-slate-700 hover:bg-slate-800 text-white font-medium text-xs h-8"
+              className="backdrop-blur-md bg-slate-900/40 border border-slate-700/60 hover:bg-slate-800/70 hover:border-slate-500/80 text-slate-200 font-medium text-xs h-9 px-3.5 shadow-sm rounded-xl transition-all duration-200"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
               <span>Generate Bank Data</span>
             </Button>
 
             <Button
               onClick={() => setIsImportModalOpen(true)}
-              variant="primary"
+              variant="outline"
               size="sm"
-              className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs h-8 shadow-md"
+              className="backdrop-blur-md bg-emerald-500/10 border border-emerald-500/40 hover:bg-emerald-500/20 hover:border-emerald-500/70 text-emerald-300 font-semibold text-xs h-9 px-3.5 shadow-md rounded-xl transition-all duration-200"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-3.5 h-3.5 text-emerald-400" />
               <span>Import Real CSV (CRO Input)</span>
             </Button>
           </div>
