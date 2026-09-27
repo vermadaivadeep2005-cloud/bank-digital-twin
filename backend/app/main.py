@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
     import app.models  # noqa
     Base.metadata.create_all(bind=engine)
     
-    # Ensure default demo user accounts exist
+    # Ensure default demo user accounts exist and accept password 1234 / password123
     from app.database import SessionLocal
     from app.models.user import User
     from app.core.security import hash_password
@@ -43,8 +43,9 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         demo_users = [
-            ("atulcoder27@gmail.com", "atul", "password123"),
-            ("analyst_1562@bankdigitaltwin.com", "Demo Risk Analyst", "password123"),
+            ("atulcoder27@gmail.com", "atul", "1234"),
+            ("atulcoder277@gmail.com", "atul", "1234"),
+            ("analyst_1562@bankdigitaltwin.com", "Demo Risk Analyst", "1234"),
         ]
         for email, name, pwd in demo_users:
             u = db.query(User).filter(User.email == email).first()
@@ -55,8 +56,11 @@ async def lifespan(app: FastAPI):
                     full_name=name,
                     role="analyst"
                 ))
+            else:
+                # Update demo user password so 1234 works consistently
+                u.hashed_password = hash_password(pwd)
         db.commit()
-    except Exception:
+    except Exception as err:
         db.rollback()
     finally:
         db.close()
