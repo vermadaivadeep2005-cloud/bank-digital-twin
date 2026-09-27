@@ -426,8 +426,9 @@ export default function OverviewPage() {
           ) : (
             <div className="divide-y divide-slate-800/60 overflow-x-auto">
               {stressRuns.slice(0, 5).map((run) => {
-                const survivedPct = run.results?.survived_pct ?? run.results?.summary?.survived_pct ?? 0;
-                const expectedLoss = run.results?.summary?.expected_loss ?? run.results?.expected_loss ?? 0;
+                const resultsAny = run.results as any;
+                const survivedPct = resultsAny?.survived_pct ?? resultsAny?.summary?.survived_pct ?? 0;
+                const expectedLoss = resultsAny?.summary?.expected_loss ?? resultsAny?.expected_loss ?? 0;
                 const unempShock = (run.params?.unemployment_shock ?? 0) * 100;
                 const rateShock = (run.params?.rate_shock ?? 0) * 100;
 
