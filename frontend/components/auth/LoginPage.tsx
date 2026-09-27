@@ -212,7 +212,7 @@ export function LoginPage() {
           </div>
 
           {/* Sign In / Register Tabs */}
-          <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 rounded-xl mb-4 border border-slate-800">
+          <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 rounded-xl mb-6 border border-slate-800">
             <button
               type="button"
               onClick={() => setIsRegister(false)}
@@ -236,26 +236,6 @@ export function LoginPage() {
               Register
             </button>
           </div>
-
-          {!isRegister && (
-            <div className="mb-4 p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
-              <div>
-                <div className="text-[11px] font-semibold text-indigo-300">Demo Account Credentials</div>
-                <div className="text-[10px] text-slate-400 font-mono">atulcoder27@gmail.com • password123</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("atulcoder27@gmail.com");
-                  setPassword("password123");
-                  toast.info("Demo credentials auto-filled!");
-                }}
-                className="px-2.5 py-1 text-[10px] font-mono font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors cursor-pointer shadow"
-              >
-                Auto-fill
-              </button>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
