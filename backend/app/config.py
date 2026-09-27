@@ -1,8 +1,11 @@
 import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Union
-
 from pydantic import field_validator
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 
 class Settings(BaseSettings):
@@ -13,7 +16,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./bank_twin.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'bank_twin.db')}"
+    )
 
     # AI & Groq Configuration
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
@@ -37,7 +43,14 @@ class Settings(BaseSettings):
             return v
         return [str(v)]
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+            ".env"
+        ),
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 
 

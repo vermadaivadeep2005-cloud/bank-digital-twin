@@ -100,7 +100,7 @@ export function FormattedMarkdown({ content, className = "" }: FormattedMarkdown
           .trim();
 
         outputNodes.push(
-          <div key={`math-${idx}`} className="my-3 p-3 rounded-xl bg-slate-900 border border-indigo-500/30 text-cyan-300 font-mono text-xs flex justify-center items-center shadow-inner overflow-x-auto">
+          <div key={`math-${idx}`} className="my-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950/80 to-slate-950 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex justify-center items-center shadow-lg shadow-indigo-500/20 overflow-x-auto">
             {renderFormattedMath(rawMath)}
           </div>
         );

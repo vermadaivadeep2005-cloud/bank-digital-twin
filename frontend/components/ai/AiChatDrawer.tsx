@@ -155,10 +155,18 @@ export function AiChatDrawer() {
         setInput(transcript);
       };
 
-      recognition.onerror = (err: unknown) => {
-        console.error("Speech Recognition Error:", err);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onerror = (event: any) => {
         setIsListening(false);
-        toast.error("Speech recognition error. Please speak clearly.");
+        const errCode = event?.error;
+        if (errCode === "no-speech" || errCode === "aborted") {
+          return; // Normal speech pause or end event
+        }
+        if (errCode === "not-allowed" || errCode === "service-not-allowed") {
+          toast.error("Microphone access denied. Please check browser permissions.");
+          return;
+        }
+        toast.info("Voice input ended. You can type or click mic to speak again.");
       };
 
       recognition.onend = () => {

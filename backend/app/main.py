@@ -34,8 +34,35 @@ async def lifespan(app: FastAPI):
     # Startup: Ensure models loaded and create database tables if not exist
     import app.models  # noqa
     Base.metadata.create_all(bind=engine)
+    
+    # Ensure default demo user accounts exist
+    from app.database import SessionLocal
+    from app.models.user import User
+    from app.core.security import hash_password
+
+    db = SessionLocal()
+    try:
+        demo_users = [
+            ("atulcoder27@gmail.com", "atul", "password123"),
+            ("analyst_1562@bankdigitaltwin.com", "Demo Risk Analyst", "password123"),
+        ]
+        for email, name, pwd in demo_users:
+            u = db.query(User).filter(User.email == email).first()
+            if not u:
+                db.add(User(
+                    email=email,
+                    hashed_password=hash_password(pwd),
+                    full_name=name,
+                    role="analyst"
+                ))
+            else:
+                u.hashed_password = hash_password(pwd)
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
     yield
-    # Shutdown logic if needed
 
 
 app = FastAPI(
@@ -55,7 +82,13 @@ app.add_exception_handler(Exception, global_exception_handler)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
