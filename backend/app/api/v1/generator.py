@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, Query, BackgroundTasks, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.services.generator_service import seed_database
+from app.services.generator_service import seed_database, import_csv_bank_data
 
 router = APIRouter(prefix="/generate", tags=["Generator"])
 
@@ -18,3 +18,23 @@ def generate_bank(
         "message": f"Successfully generated synthetic bank with {n_customers} customers.",
         **stats,
     }
+
+
+@router.post("/import-csv")
+async def import_bank_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files (.csv) are supported.")
+    try:
+        content = await file.read()
+        csv_text = content.decode("utf-8")
+        stats = import_csv_bank_data(db, csv_text)
+        return {
+            "status": "success",
+            "message": f"Successfully imported {stats['customers']} portfolio records from CSV.",
+            **stats,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to import CSV: {str(e)}")

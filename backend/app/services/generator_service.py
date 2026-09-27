@@ -143,3 +143,121 @@ def seed_database(db: Session, n_customers: int = 5000):
     }
     logger.info(f"Database generation complete: {stats}")
     return stats
+
+
+def import_csv_bank_data(db: Session, csv_content: str):
+    """
+    Parses user-uploaded CSV containing real bank customers and loan portfolios.
+    Wipes existing portfolio and seeds database from CSV rows.
+    """
+    import csv
+    import io
+
+    reader = csv.DictReader(io.StringIO(csv_content.strip()))
+    
+    # Wipe existing records cleanly
+    db.query(Loan).delete()
+    db.query(Account).delete()
+    db.query(Customer).delete()
+    db.commit()
+
+    customers = []
+    accounts = []
+    loans = []
+
+    for row in reader:
+        # Normalize keys
+        clean_row = {str(k).strip().lower(): str(v).strip() for k, v in row.items() if k is not None}
+        
+        name = clean_row.get("name") or clean_row.get("customer_name") or fake.name()
+        try:
+            cs = int(float(clean_row.get("credit_score", 700)))
+        except (ValueError, TypeError):
+            cs = 700
+        cs = max(300, min(850, cs))
+
+        try:
+            income = float(clean_row.get("income", 75000))
+        except (ValueError, TypeError):
+            income = 75000.0
+
+        try:
+            age = int(float(clean_row.get("age", 40)))
+        except (ValueError, TypeError):
+            age = 40
+
+        emp = clean_row.get("employment_status", "employed").lower()
+        if emp not in ["employed", "self-employed", "unemployed", "retired"]:
+            emp = "employed"
+
+        region = clean_row.get("region") or clean_row.get("state") or fake.state()
+
+        c = Customer(
+            name=name,
+            age=age,
+            income=income,
+            credit_score=cs,
+            employment_status=emp,
+            region=region,
+        )
+        customers.append(c)
+
+        # Generate checking/savings account
+        acc_bal = max(1000.0, income * 0.15)
+        accounts.append(Account(customer=c, account_type="checking", balance=acc_bal))
+
+        # Parse loan details
+        try:
+            principal = float(clean_row.get("principal", 250000))
+        except (ValueError, TypeError):
+            principal = 250000.0
+
+        try:
+            outstanding = float(clean_row.get("outstanding", principal * 0.75))
+        except (ValueError, TypeError):
+            outstanding = principal * 0.75
+
+        try:
+            rate_val = float(clean_row.get("interest_rate", 0.055))
+            if rate_val > 1.0:
+                rate_val = rate_val / 100.0
+        except (ValueError, TypeError):
+            rate_val = 0.055
+
+        loan_type = clean_row.get("loan_type", "mortgage").lower()
+        if loan_type not in ["mortgage", "personal", "auto", "business"]:
+            loan_type = "mortgage"
+
+        status = clean_row.get("status", "current").lower()
+        if status not in ["current", "delinquent", "default"]:
+            status = "current"
+
+        loans.append(
+            Loan(
+                customer=c,
+                principal=principal,
+                outstanding=outstanding,
+                interest_rate=rate_val,
+                term_months=360 if loan_type == "mortgage" else 60,
+                loan_type=loan_type,
+                status=status,
+                region=region,
+            )
+        )
+
+    if not customers:
+        raise ValueError("No valid customer or loan records found in CSV file.")
+
+    db.add_all(customers)
+    db.flush()
+    db.add_all(accounts)
+    db.add_all(loans)
+    db.commit()
+
+    stats = {
+        "customers": len(customers),
+        "accounts": len(accounts),
+        "loans": len(loans),
+    }
+    logger.info(f"CSV Import complete: {stats}")
+    return stats

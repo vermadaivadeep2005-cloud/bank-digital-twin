@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { runStressTest } from "@/lib/api";
 import { StressTestPayload, StressTestResponse } from "@/types/api";
 import { formatCurrency } from "@/lib/format";
-import { downloadJson, printPdfReport } from "@/lib/exportUtils";
+import { downloadJson, exportPdfReport } from "@/lib/exportUtils";
 
 function StressContent() {
   const searchParams = useSearchParams();
@@ -107,6 +107,39 @@ function StressContent() {
     toast.success("Downloaded simulation JSON report");
   };
 
+  const handleExportPdfReport = () => {
+    if (!result) return;
+    const nSims = result.params?.n_sims ?? 1000;
+    const horizon = result.params?.horizon_months ?? 24;
+    const seed = result.params?.seed ?? 42;
+    const segmentRows = (result.segment_breakdown?.by_type || []).map((seg) => [
+      seg.category,
+      formatCurrency(seg.expected_loss, true),
+      `${seg.loss_pct.toFixed(2)}%`,
+    ]);
+
+    exportPdfReport({
+      title: `Monte Carlo Stress Simulation Report — ${result.scenario_name}`,
+      subtitle: `Simulations: ${nSims.toLocaleString()} paths | Horizon: ${horizon} Months | Seed: ${seed}`,
+      metrics: [
+        { label: "Survival Rate", value: `${result.survived_pct.toFixed(1)}%`, detail: result.survived_pct >= 80 ? "Passes Basel Solvency Threshold" : "Capital Deficit Warning" },
+        { label: "Expected Loss (Mean)", value: formatCurrency(result.summary.expected_loss, true) },
+        { label: "Worst Case Loss (P95)", value: formatCurrency(result.summary.worst_case_loss, true) },
+        { label: "Median Loss (P50)", value: formatCurrency(result.summary.p50_loss, true) },
+        { label: "Initial Capital Base", value: formatCurrency(result.summary.initial_capital, true) },
+        { label: "Total Portfolio Size", value: formatCurrency(result.summary.portfolio_size, true) },
+      ],
+      tables: segmentRows.length > 0 ? [
+        {
+          title: "Segmented Capital Impact & Risk Exposure Breakdown",
+          headers: ["Loan Category", "Stressed Loss ($)", "Loss Rate (%)"],
+          rows: segmentRows,
+        },
+      ] : [],
+    });
+    toast.success("Generated plain executive PDF stress test report!");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -126,9 +159,9 @@ function StressContent() {
             <span>Export Report JSON</span>
           </Button>
 
-          <Button variant="outline" size="sm" onClick={printPdfReport}>
+          <Button variant="outline" size="sm" onClick={handleExportPdfReport} disabled={!result}>
             <Printer className="w-3.5 h-3.5" />
-            <span>Download / Print PDF</span>
+            <span>Download Plain PDF Report</span>
           </Button>
 
           {result && (

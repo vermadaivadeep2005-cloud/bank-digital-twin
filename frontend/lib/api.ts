@@ -264,6 +264,18 @@ export const generateBank = async (n_customers = 5000) => {
   }
 };
 
+export const importBankCsv = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return (
+    await API.post("/api/v1/generate/import-csv", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+  ).data;
+};
+
 // Health Check
 export const getHealth = async () => {
   try {

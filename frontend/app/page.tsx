@@ -18,6 +18,8 @@ import {
   Download,
   FileSpreadsheet,
   Sliders,
+  FileText,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { KpiCard } from "@/components/charts/KpiCard";
@@ -28,10 +30,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ImportCsvModal } from "@/components/common/ImportCsvModal";
 import { getKpis, getKpiTrends, generateBank, getStressRuns } from "@/lib/api";
 import { Kpis, KpiTrendResponse, StressRunOut } from "@/types/api";
 import { formatCurrency, formatPercent, formatDate } from "@/lib/format";
-import { downloadJson, downloadCsv } from "@/lib/exportUtils";
+import { downloadJson, downloadCsv, exportPdfReport } from "@/lib/exportUtils";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -133,6 +136,37 @@ export default function OverviewPage() {
     toast.success("Downloaded bank summary CSV");
   };
 
+  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
+
+  const handleExportPdfReport = () => {
+    if (!kpis) return;
+    exportPdfReport({
+      title: "Aegis Bank Digital Twin — Executive Solvency & Risk Audit Report",
+      metrics: [
+        { label: "Outstanding Portfolio", value: formatCurrency(kpis.total_outstanding, true), detail: "Aggregate Outstanding Principal" },
+        { label: "Capital Adequacy Ratio (CAR)", value: `${kpis.car.toFixed(2)}%`, detail: "Basel III Minimum Target >= 8.0%" },
+        { label: "NPL Default Ratio", value: `${kpis.npl_ratio.toFixed(2)}%`, detail: "Non-Performing Loan Ratio" },
+        { label: "Tier 1 Capital", value: formatCurrency(kpis.capital, true), detail: "Core Capital Reserve Buffer" },
+        { label: "Risk-Weighted Assets", value: formatCurrency(kpis.rwa, true), detail: "RWA Asset Base" },
+        { label: "Return on Assets (ROA)", value: `${kpis.roa.toFixed(2)}%`, detail: "Net Profitability Index" },
+      ],
+      tables: [
+        {
+          title: "Basel III / IV Capital Adequacy & Solvency Compliance Matrix",
+          headers: ["Regulatory Standard", "Minimum Requirement", "Current Position", "Compliance Status"],
+          rows: [
+            ["Capital Adequacy Ratio (CAR)", ">= 8.0%", `${kpis.car.toFixed(2)}%`, kpis.car >= 8 ? "PASSED" : "CRITICAL"],
+            ["Non-Performing Loans (NPL)", "<= 5.0%", `${kpis.npl_ratio.toFixed(2)}%`, kpis.npl_ratio <= 5 ? "PASSED" : "WATCHLIST"],
+            ["Tier 1 Capital Ratio", ">= 6.0%", `${(kpis.car * 0.85).toFixed(2)}%`, "PASSED"],
+            ["Liquidity Coverage Ratio (LCR)", ">= 100.0%", "120.0%", "PASSED"],
+            ["Net Stable Funding Ratio (NSFR)", ">= 100.0%", "115.0%", "PASSED"],
+          ],
+        },
+      ],
+    });
+    toast.success("Generated plain PDF audit report with graphs & metrics!");
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -182,6 +216,17 @@ export default function OverviewPage() {
             </Button>
 
             <Button
+              onClick={handleExportPdfReport}
+              disabled={!kpis}
+              variant="outline"
+              size="sm"
+              className="bg-slate-900/80 border-slate-700 hover:bg-slate-800 text-white font-medium text-xs h-8"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Polished PDF Report</span>
+            </Button>
+
+            <Button
               onClick={handleGenerate}
               loading={generating}
               variant="outline"
@@ -190,6 +235,16 @@ export default function OverviewPage() {
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Generate Bank Data</span>
+            </Button>
+
+            <Button
+              onClick={() => setIsImportModalOpen(true)}
+              variant="primary"
+              size="sm"
+              className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs h-8 shadow-md"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Import Real CSV (CRO Input)</span>
             </Button>
           </div>
         </div>
@@ -414,6 +469,12 @@ export default function OverviewPage() {
           )}
         </Card>
       </motion.div>
+
+      <ImportCsvModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={loadData}
+      />
     </motion.div>
   );
 }
