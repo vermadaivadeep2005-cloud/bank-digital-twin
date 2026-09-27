@@ -343,8 +343,17 @@ export function AiChatDrawer() {
                 {/* Voice Output Toggle */}
                 <button
                   onClick={() => {
-                    setAutoVoice(!autoVoice);
-                    toast.info(autoVoice ? "Auto voice output muted" : "Auto voice output enabled");
+                    if (autoVoice) {
+                      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                        window.speechSynthesis.cancel();
+                      }
+                      setSpeakingMsgId(null);
+                      setAutoVoice(false);
+                      toast.info("Voice output muted");
+                    } else {
+                      setAutoVoice(true);
+                      toast.info("Voice output enabled");
+                    }
                   }}
                   className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                     autoVoice

@@ -162,11 +162,9 @@ export function LoginPage() {
     setLoading(true);
     try {
       if (isRegister) {
-        await register(email, password, fullName);
-        toast.success("Account registered successfully! Signed in.");
+        await register(email.trim(), password, fullName.trim());
       } else {
-        await login(email, password);
-        toast.success("Authenticated successfully!");
+        await login(email.trim(), password);
       }
     } catch (err: unknown) {
       const msg =
