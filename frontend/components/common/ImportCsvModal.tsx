@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Info, X } from "lucide-react";
+import { Upload, FileSpreadsheet, Download, Info, Eye, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,8 @@ interface ImportCsvModalProps {
 export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalProps) {
   const [file, setFile] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
+  const [previewHeaders, setPreviewHeaders] = React.useState<string[]>([]);
+  const [previewRows, setPreviewRows] = React.useState<string[][]>([]);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleDownloadSample = () => {
@@ -32,18 +34,44 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
       "principal",
       "outstanding",
       "interest_rate",
+      "currency",
+      "status",
     ];
 
     const rows = [
-      ["Alexander Wright", 740, 125000, 42, "employed", "California", "mortgage", 450000, 380000, 0.055],
-      ["Elena Rostova", 680, 85000, 36, "self-employed", "New York", "personal", 35000, 22000, 0.095],
-      ["Marcus Vance", 810, 210000, 51, "employed", "Texas", "business", 750000, 520000, 0.065],
-      ["Sophia Lin", 620, 58000, 29, "unemployed", "Florida", "auto", 28000, 19000, 0.115],
-      ["David Miller", 715, 96000, 47, "retired", "Illinois", "mortgage", 310000, 210000, 0.048],
+      ["Alexander Wright", 740, 125000, 42, "employed", "California", "mortgage", 450000, 380000, 0.055, "USD", "current"],
+      ["Elena Rostova", 680, 7182500, 36, "self-employed", "New York", "personal", 2957500, 1859000, 0.095, "INR", "current"],
+      ["Marcus Vance", 810, 770700, 51, "employed", "Texas", "business", 2752500, 1908400, 0.065, "AED", "current"],
+      ["Sophia Lin", 620, 53360, 29, "unemployed", "Florida", "auto", 25760, 17480, 0.115, "EUR", "delinquent"],
+      ["David Miller", 715, 74880, 47, "retired", "Illinois", "mortgage", 241800, 163800, 0.048, "GBP", "current"],
     ];
 
-    downloadCsv(headers, rows, "cro_bank_portfolio_template.csv");
-    toast.success("Downloaded sample CSV portfolio template!");
+    downloadCsv(headers, rows, "cro_multi_currency_template.csv");
+    toast.success("Downloaded sample multi-currency CSV template!");
+  };
+
+  const parseCsvPreview = (selectedFile: File) => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text
+        .split(/\r\n|\n/)
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
+      if (lines.length > 0) {
+        const headers = lines[0].split(",").map((h) => h.replace(/^["']|["']$/g, "").trim());
+        const rows = lines.slice(1, 11).map((line) =>
+          line.split(",").map((cell) => cell.replace(/^["']|["']$/g, "").trim())
+        );
+
+        setPreviewHeaders(headers);
+        setPreviewRows(rows);
+      }
+    };
+    reader.readAsText(selectedFile);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +82,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
         return;
       }
       setFile(selected);
+      parseCsvPreview(selected);
     }
   };
 
@@ -66,6 +95,16 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
         return;
       }
       setFile(dropped);
+      parseCsvPreview(dropped);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setFile(null);
+    setPreviewHeaders([]);
+    setPreviewRows([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -79,7 +118,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
     try {
       const res = await importBankCsv(file);
       toast.success(res.message || "Successfully imported portfolio CSV!");
-      setFile(null);
+      clearSelectedFile();
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -96,18 +135,18 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import Real Bank Portfolio CSV (CRO Input)">
-      <div className="space-y-5 text-xs text-slate-300 pt-1">
+    <Modal isOpen={isOpen} onClose={onClose} title="Import Bank Portfolio CSV (Multi-Currency CRO Input)">
+      <div className="space-y-5 text-xs text-slate-300 pt-1 max-h-[80vh] overflow-y-auto pr-1">
         {/* Header Description */}
         <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-start gap-2.5">
           <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="font-semibold text-slate-100 text-xs">
-              Upload Custom Bank Balance Sheet & Loan Portfolio
+              Upload Custom Bank Balance Sheet & Multi-Currency Portfolio
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Chief Risk Officers (CROs) can import real customer and loan books instead of generating synthetic data.
-              Existing active records will be updated with your imported portfolio.
+              Supports single or multi-currency customer books (<span className="text-cyan-300 font-mono">USD, INR, AED, EUR, GBP</span>).
+              The engine automatically normalizes multi-currency figures into baseline risk metrics while preserving customer data.
             </p>
           </div>
         </div>
@@ -123,7 +162,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download Sample Template</span>
+              <span>Download Multi-Currency Template</span>
             </button>
           </div>
 
@@ -134,7 +173,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                   <th className="p-2 border-r border-slate-800">Column Header</th>
                   <th className="p-2 border-r border-slate-800">Required</th>
                   <th className="p-2 border-r border-slate-800">Format / Acceptable Values</th>
-                  <th className="p-2">Example</th>
+                  <th className="p-2">Multi-Currency Example</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 font-mono text-slate-300">
@@ -153,8 +192,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">income</td>
                   <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Annual Income ($)</td>
-                  <td className="p-2 text-cyan-300">125000</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Income (USD, INR, AED, EUR, GBP)</td>
+                  <td className="p-2 text-cyan-300">7182500</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">loan_type</td>
@@ -165,20 +204,32 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">principal</td>
                   <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Principal ($)</td>
-                  <td className="p-2 text-cyan-300">450000</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Principal Amount (Multi-Currency)</td>
+                  <td className="p-2 text-cyan-300">2957500</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">outstanding</td>
                   <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Current Balance ($)</td>
-                  <td className="p-2 text-cyan-300">380000</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Current Balance (Multi-Currency)</td>
+                  <td className="p-2 text-cyan-300">1859000</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">interest_rate</td>
                   <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">Decimal rate (0.055 or 5.5%)</td>
                   <td className="p-2 text-cyan-300">0.055</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border-r border-slate-800 font-semibold text-white">currency</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">Optional</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">USD, INR, AED, EUR, GBP (Defaults to USD)</td>
+                  <td className="p-2 text-cyan-300">&quot;INR&quot; / &quot;AED&quot; / &quot;EUR&quot;</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border-r border-slate-800 font-semibold text-white">status</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">Optional</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">current, delinquent, default (Inferred if empty)</td>
+                  <td className="p-2 text-cyan-300">&quot;current&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">employment_status</td>
@@ -217,16 +268,33 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
           />
 
           {file ? (
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <FileSpreadsheet className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="font-semibold text-white text-xs">{file.name}</div>
-                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                  {(file.size / 1024).toFixed(1)} KB • Click to change file
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-white text-xs flex items-center gap-2">
+                    <span>{file.name}</span>
+                    <Badge variant="success" className="text-[10px]">Ready to Preview</Badge>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                    {(file.size / 1024).toFixed(1)} KB • Click to choose another file
+                  </div>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearSelectedFile();
+                }}
+                className="p-2 text-slate-400 hover:text-rose-400 transition"
+                title="Remove file"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
@@ -238,15 +306,65 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                   Drag & drop your CSV file here, or <span className="text-cyan-400 underline">browse</span>
                 </div>
                 <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                  Supports .csv format up to 50MB
+                  Supports .csv format up to 50MB (Single or Multi-Currency)
                 </div>
               </div>
             </div>
           )}
         </div>
 
+        {/* Live Interactive CSV Data Preview Table */}
+        {file && previewRows.length > 0 && (
+          <div className="space-y-2 p-3 bg-slate-950/90 border border-emerald-500/30 rounded-2xl animate-fade-in shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-emerald-400" />
+                <span className="font-semibold text-white text-xs font-mono uppercase tracking-wider">
+                  CSV Live Data Preview Container
+                </span>
+              </div>
+              <Badge variant="neutral" className="font-mono text-[10px] bg-slate-900 text-slate-300">
+                Previewing top {previewRows.length} rows
+              </Badge>
+            </div>
+
+            <div className="overflow-x-auto max-h-56 rounded-xl border border-slate-800 bg-slate-900/90">
+              <table className="w-full text-[11px] text-left border-collapse">
+                <thead className="bg-slate-950 text-emerald-300 font-mono text-[10px] uppercase sticky top-0 border-b border-slate-800">
+                  <tr>
+                    <th className="p-2 border-r border-slate-800 text-center">#</th>
+                    {previewHeaders.map((h, i) => (
+                      <th key={i} className="p-2 border-r border-slate-800 last:border-r-0 whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80 font-mono text-slate-200 text-[11px]">
+                  {previewRows.map((row, rIdx) => (
+                    <tr key={rIdx} className="hover:bg-slate-800/50 transition">
+                      <td className="p-2 border-r border-slate-800 text-center font-bold text-slate-500">{rIdx + 1}</td>
+                      {row.map((cell, cIdx) => (
+                        <td key={cIdx} className="p-2 border-r border-slate-800 last:border-r-0 whitespace-nowrap">
+                          {previewHeaders[cIdx]?.toLowerCase() === "currency" ? (
+                            <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-bold">
+                              {cell || "USD"}
+                            </span>
+                          ) : (
+                            cell
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Modal Action Buttons */}
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
           <Button variant="outline" size="sm" onClick={onClose} className="border-slate-800 text-slate-400">
             Cancel
           </Button>
@@ -257,10 +375,10 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             onClick={handleUpload}
             loading={uploading}
             disabled={!file}
-            className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold flex items-center gap-2 shadow-lg shadow-indigo-600/30"
           >
             <Upload className="w-4 h-4" />
-            <span>Import & Initialize Portfolio</span>
+            <span>Confirm & Import Portfolio CSV</span>
           </Button>
         </div>
       </div>
