@@ -80,7 +80,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
   const severity = getSeverityBadge();
 
   return (
-    <Card className="sticky top-20 border-indigo-500/30 bg-slate-900/90 shadow-2xl backdrop-blur-xl p-6">
+    <Card className="sticky top-20 border-indigo-500/30 bg-slate-900/95 shadow-2xl backdrop-blur-xl p-6 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-600/40 scrollbar-track-slate-950/80 pr-3">
       <div className="flex items-center justify-between mb-5 border-b border-slate-800 pb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">

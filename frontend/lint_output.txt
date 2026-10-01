@@ -1,0 +1,1 @@
+Invalid project directory provided, no such directory: /Users/it4/Desktop/bank-digital-twin/frontend/lint

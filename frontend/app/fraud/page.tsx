@@ -439,18 +439,18 @@ export default function FraudPage() {
       {/* Analytics Section with Pie Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pie Chart 1: Risk Tier Distribution */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">Risk Tier Distribution</h3>
               <p className="text-slate-400 text-xs mt-0.5">Categorization by threat severity index</p>
             </div>
-            <span className="text-xs bg-slate-800 text-rose-400 px-2.5 py-1 rounded font-mono border border-slate-700">
+            <span className="text-xs bg-slate-800 text-rose-400 px-2.5 py-1 rounded-lg font-mono font-semibold border border-slate-700">
               {activeAlerts.total_alerts} Alerts
             </span>
           </div>
 
-          <div className="h-64 w-full my-4">
+          <div className="h-52 w-full my-3">
             {riskPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -458,8 +458,8 @@ export default function FraudPage() {
                     data={riskPieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
+                    innerRadius={55}
+                    outerRadius={80}
                     paddingAngle={4}
                     dataKey="value"
                   >
@@ -474,9 +474,9 @@ export default function FraudPage() {
                       borderRadius: "8px",
                       color: "#f8fafc",
                       fontSize: "12px",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
                     }}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -485,21 +485,39 @@ export default function FraudPage() {
               </div>
             )}
           </div>
+
+          {/* Custom Responsive Legend Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-slate-800/80">
+            {riskPieData.map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs hover:border-slate-700 transition"
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="text-slate-300 font-medium truncate">{item.name}</span>
+                </div>
+                <span className="font-mono font-bold text-white shrink-0 ml-2 px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Pie Chart 2: Anomaly Trigger / Vector Breakdown */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">Anomaly Detection Vector Breakdown</h3>
               <p className="text-slate-400 text-xs mt-0.5">Distribution of rule-based vs ML model triggers</p>
             </div>
-            <span className="text-xs bg-slate-800 text-cyan-400 px-2.5 py-1 rounded font-mono border border-slate-700">
+            <span className="text-xs bg-slate-800 text-cyan-400 px-2.5 py-1 rounded-lg font-mono font-semibold border border-slate-700">
               Multi-Vector
             </span>
           </div>
 
-          <div className="h-64 w-full my-4">
+          <div className="h-52 w-full my-3">
             {categoryPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -507,8 +525,8 @@ export default function FraudPage() {
                     data={categoryPieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
+                    innerRadius={55}
+                    outerRadius={80}
                     paddingAngle={4}
                     dataKey="value"
                   >
@@ -523,9 +541,9 @@ export default function FraudPage() {
                       borderRadius: "8px",
                       color: "#f8fafc",
                       fontSize: "12px",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
                     }}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -533,6 +551,26 @@ export default function FraudPage() {
                 No trigger breakdown available.
               </div>
             )}
+          </div>
+
+          {/* Custom Responsive Legend Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-slate-800/80">
+            {categoryPieData.map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs hover:border-slate-700 transition"
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="text-slate-300 font-medium truncate" title={item.name}>
+                    {item.name}
+                  </span>
+                </div>
+                <span className="font-mono font-bold text-cyan-400 shrink-0 ml-2 px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                  {item.value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

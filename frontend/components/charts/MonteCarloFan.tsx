@@ -68,56 +68,58 @@ export function MonteCarloFan({ paths }: MonteCarloFanProps) {
   const yDomain: [number, number] = [Math.max(0, Math.floor(minVal - padding)), Math.ceil(maxVal + padding)];
 
   return (
-    <div className="w-full h-72">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
-          <defs>
-            <linearGradient id="p95Gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-            </linearGradient>
-            <linearGradient id="p5Gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-          <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
-          <YAxis
-            stroke="#94a3b8"
-            fontSize={11}
-            tickLine={false}
-            domain={yDomain}
-            tickFormatter={(v) => formatCurrency(v, true)}
-          />
-          <Tooltip content={<CustomTooltip />} />
+    <div className="w-full space-y-4">
+      <div className="w-full h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+            <defs>
+              <linearGradient id="p95Gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+              </linearGradient>
+              <linearGradient id="p5Gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+            <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
+            <YAxis
+              stroke="#94a3b8"
+              fontSize={11}
+              tickLine={false}
+              domain={yDomain}
+              tickFormatter={(v) => formatCurrency(v, true)}
+            />
+            <Tooltip content={<CustomTooltip />} />
 
-          <Area
-            type="monotone"
-            dataKey="p95"
-            name="Best Case (P95)"
-            stroke="#10b981"
-            strokeWidth={2}
-            fill="url(#p95Gradient)"
-          />
-          <Area
-            type="monotone"
-            dataKey="p50"
-            name="Median (P50)"
-            stroke="#6366f1"
-            strokeWidth={2.5}
-            fill="none"
-          />
-          <Area
-            type="monotone"
-            dataKey="p5"
-            name="Adverse (P5)"
-            stroke="#f43f5e"
-            strokeWidth={2}
-            fill="url(#p5Gradient)"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+            <Area
+              type="monotone"
+              dataKey="p95"
+              name="Best Case (P95)"
+              stroke="#10b981"
+              strokeWidth={2}
+              fill="url(#p95Gradient)"
+            />
+            <Area
+              type="monotone"
+              dataKey="p50"
+              name="Median (P50)"
+              stroke="#6366f1"
+              strokeWidth={2.5}
+              fill="none"
+            />
+            <Area
+              type="monotone"
+              dataKey="p5"
+              name="Adverse (P5)"
+              stroke="#f43f5e"
+              strokeWidth={2}
+              fill="url(#p5Gradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* CRO Math Breakdown for Monte Carlo Trajectories */}
       <CroMathBreakdown

@@ -275,32 +275,32 @@ function parseInlineStyles(text: string): React.ReactNode[] {
     }
 
     // **bold**
-    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
       const inner = part.slice(2, -2);
       return (
         <strong key={idx} className="font-bold text-white tracking-wide">
-          {inner}
+          {parseInlineStyles(inner)}
         </strong>
       );
     }
 
     // *italic*
-    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
       const inner = part.slice(1, -1);
       return (
         <em key={idx} className="italic text-cyan-200">
-          {inner}
+          {parseInlineStyles(inner)}
         </em>
       );
     }
 
     // `code`
-    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
       const inner = part.slice(1, -1);
       return (
         <code
           key={idx}
-          className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-300 font-mono text-[11px]"
+          className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-300 font-mono text-[11px] font-semibold"
         >
           {inner}
         </code>

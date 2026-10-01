@@ -445,7 +445,7 @@ function StressContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Reverse Configurator & Management Actions */}
           <div className="lg:col-span-1 space-y-6">
-            <Card className="border-amber-500/30 bg-slate-900/90 shadow-2xl backdrop-blur-xl p-6 space-y-5">
+            <Card className="sticky top-20 border-amber-500/30 bg-slate-900/95 shadow-2xl backdrop-blur-xl p-6 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-amber-600/40 scrollbar-track-slate-950/80 pr-3">
               <div className="flex items-center space-x-3 border-b border-slate-800 pb-4">
                 <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
                   <RefreshCw className="h-5 w-5" />

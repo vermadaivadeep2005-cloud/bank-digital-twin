@@ -39,13 +39,13 @@ export const CroMathBreakdown: React.FC<CroMathBreakdownProps> = ({
 
   return (
     <div
-      className={`mt-4 rounded-xl border border-slate-800 bg-slate-950/70 backdrop-blur-md overflow-hidden transition-all duration-300 ${className}`}
+      className={`relative z-20 mt-4 rounded-2xl border border-slate-800 bg-[#090d16] shadow-2xl overflow-hidden transition-all duration-300 ${className}`}
     >
       {/* Expand/Collapse Toggle Button */}
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-4 py-3 flex items-center justify-between bg-slate-900/90 hover:bg-slate-800/80 transition cursor-pointer text-left select-none border-b border-slate-800/60"
+        className="w-full px-4 py-3 flex items-center justify-between bg-slate-900/90 hover:bg-slate-800/90 transition cursor-pointer text-left select-none border-b border-slate-800/70"
       >
         <div className="flex items-center space-x-3">
           <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
