@@ -14,7 +14,13 @@ export function CurrencySelector() {
         <span className="text-sm leading-none">{currencyConfig.flag}</span>
         <select
           value={currency}
-          onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+          onChange={(e) => {
+            const newCode = e.target.value as CurrencyCode;
+            setCurrency(newCode);
+            if (typeof window !== "undefined") {
+              window.location.reload();
+            }
+          }}
           className="bg-transparent text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none cursor-pointer pr-1"
         >
           {Object.values(CURRENCIES).map((c) => (
