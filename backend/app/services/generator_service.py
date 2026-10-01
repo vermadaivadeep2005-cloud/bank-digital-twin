@@ -165,9 +165,24 @@ def import_csv_bank_data(db: Session, csv_content: str):
     accounts = []
     loans = []
 
+    CURRENCY_TO_USD_RATES = {
+        "USD": 1.0,
+        "INR": 1.0 / 84.50,
+        "AED": 1.0 / 3.67,
+        "EUR": 1.0 / 0.92,
+        "GBP": 1.0 / 0.78,
+        "RS": 1.0 / 84.50,
+        "RUPEES": 1.0 / 84.50,
+        "DIRHAM": 1.0 / 3.67,
+    }
+
     for row in reader:
         # Normalize keys
         clean_row = {str(k).strip().lower(): str(v).strip() for k, v in row.items() if k is not None}
+        
+        # Determine currency rate conversion
+        curr_code = clean_row.get("currency", "USD").upper().strip()
+        curr_rate = CURRENCY_TO_USD_RATES.get(curr_code, 1.0)
         
         name = clean_row.get("name") or clean_row.get("customer_name") or fake.name()
         try:
@@ -177,9 +192,10 @@ def import_csv_bank_data(db: Session, csv_content: str):
         cs = max(300, min(850, cs))
 
         try:
-            income = float(clean_row.get("income", 75000))
+            raw_income = float(clean_row.get("income", 75000))
         except (ValueError, TypeError):
-            income = 75000.0
+            raw_income = 75000.0
+        income = raw_income * curr_rate
 
         try:
             age = int(float(clean_row.get("age", 40)))
@@ -208,14 +224,16 @@ def import_csv_bank_data(db: Session, csv_content: str):
 
         # Parse loan details
         try:
-            principal = float(clean_row.get("principal", 250000))
+            raw_principal = float(clean_row.get("principal", 250000))
         except (ValueError, TypeError):
-            principal = 250000.0
+            raw_principal = 250000.0
+        principal = raw_principal * curr_rate
 
         try:
-            outstanding = float(clean_row.get("outstanding", principal * 0.75))
+            raw_outstanding = float(clean_row.get("outstanding", raw_principal * 0.75))
         except (ValueError, TypeError):
-            outstanding = principal * 0.75
+            raw_outstanding = raw_principal * 0.75
+        outstanding = raw_outstanding * curr_rate
 
         try:
             rate_val = float(clean_row.get("interest_rate", 0.055))

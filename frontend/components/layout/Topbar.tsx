@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
 
 import { BankLogo } from "@/components/common/BankLogo";
+import { CurrencySelector } from "@/components/common/CurrencySelector";
 
 const routeNames: Record<string, string> = {
   "/": "Overview Dashboard",
@@ -41,8 +42,10 @@ export default function Topbar() {
           </h1>
         </div>
 
-        {/* Right Controls */}
+        {/* Right Controls: Global Currency Selector & Auth */}
         <div className="flex items-center gap-3">
+          <CurrencySelector />
+
           {/* User Auth Profile Badge / Login Trigger */}
           {user ? (
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1">

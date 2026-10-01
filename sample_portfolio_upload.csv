@@ -1,11 +1,11 @@
-name,credit_score,income,age,employment_status,region,loan_type,principal,outstanding,interest_rate
-Alexander Wright,740,125000,42,employed,California,mortgage,450000,380000,0.055
-Elena Rostova,680,85000,36,self-employed,New York,personal,35000,22000,0.095
-Marcus Vance,810,210000,51,employed,Texas,business,750000,520000,0.065
-Sophia Lin,620,58000,29,unemployed,Florida,auto,28000,19000,0.115
-David Miller,715,96000,47,retired,Illinois,mortgage,310000,210000,0.048
-Samantha Reed,790,175000,39,employed,Washington,commercial,950000,680000,0.058
-Carlos Mendez,650,62000,33,employed,Arizona,auto,32000,24000,0.089
-Priya Patel,760,140000,44,employed,New Jersey,mortgage,520000,410000,0.052
-Robert Chen,590,45000,28,self-employed,Ohio,personal,18000,15000,0.145
-Victoria Sterling,825,290000,58,employed,Massachusetts,business,1200000,850000,0.049
+name,credit_score,income,age,employment_status,region,loan_type,principal,outstanding,interest_rate,currency
+Alexander Wright,740,125000,42,employed,California,mortgage,450000,380000,0.055,USD
+Elena Rostova,680,7182500,36,self-employed,New York,personal,2957500,1859000,0.095,INR
+Marcus Vance,810,770700,51,employed,Texas,business,2752500,1908400,0.065,AED
+Sophia Lin,620,53360,29,unemployed,Florida,auto,25760,17480,0.115,EUR
+David Miller,715,74880,47,retired,Illinois,mortgage,241800,163800,0.048,GBP
+Samantha Reed,790,175000,39,employed,Washington,commercial,950000,680000,0.058,USD
+Carlos Mendez,650,5239000,33,employed,Arizona,auto,2704000,2028000,0.089,INR
+Priya Patel,760,513800,44,employed,New Jersey,mortgage,1908400,1504700,0.052,AED
+Robert Chen,590,41400,28,self-employed,Ohio,personal,16560,13800,0.145,EUR
+Victoria Sterling,825,226200,58,employed,Massachusetts,business,936000,663000,0.049,GBP
