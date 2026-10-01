@@ -246,9 +246,17 @@ def import_csv_bank_data(db: Session, csv_content: str):
         if loan_type not in ["mortgage", "personal", "auto", "business"]:
             loan_type = "mortgage"
 
-        status = clean_row.get("status", "current").lower()
-        if status not in ["current", "delinquent", "default"]:
-            status = "current"
+        # Determine loan status (use explicit status if provided, or infer from credit score)
+        raw_status = clean_row.get("status", "").lower()
+        if raw_status in ["current", "delinquent", "default"]:
+            status = raw_status
+        else:
+            if cs < 610:
+                status = "default"
+            elif cs < 660:
+                status = "delinquent"
+            else:
+                status = "current"
 
         loans.append(
             Loan(
