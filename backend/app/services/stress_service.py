@@ -50,6 +50,7 @@ def run_and_persist_stress_test(
         scenario_name=req.scenario_name,
         params=params_dict,
         summary=result["summary"],
+        tail_risk_comparison=result.get("tail_risk_comparison"),
         distribution=result["distribution"],
         capital_paths=result["capital_paths"],
         survived_pct=result["survived_pct"],

@@ -43,10 +43,23 @@ class SegmentImpact(BaseModel):
     loss_pct: float
 
 
+class TailRiskComparison(BaseModel):
+    gaussian_expected_loss: float
+    gaussian_p95_loss: float
+    gaussian_survived_pct: float
+    student_t_expected_loss: float
+    student_t_p95_loss: float
+    student_t_survived_pct: float
+    tail_risk_gap_loss: float
+    tail_risk_gap_pct: float
+    summary_insight: str
+
+
 class StressTestResponse(BaseModel):
     scenario_name: str
     params: Dict[str, Any]
     summary: StressSummary
+    tail_risk_comparison: Optional[TailRiskComparison] = None
     distribution: List[float]
     capital_paths: Dict[str, List[float]]
     survived_pct: float

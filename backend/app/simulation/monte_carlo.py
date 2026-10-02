@@ -98,45 +98,69 @@ def run_monte_carlo_vectorized(
     # Path-level systemic macro shock distributions
     shock_magnitude = (unemployment_shock * 1.8) + (rate_shock * 1.2) + 0.15
 
-    # ==================== COPULA MODELING ====================
-    # Gaussian Copula vs Student's t-Copula (Heavy Tail)
-    copula_clean = (copula_type or "gaussian").lower().strip()
-    if copula_clean == "student_t":
-        from scipy.stats import t, norm
-        df_val = max(3, int(degrees_of_freedom))
-        # Draw from Student's t distribution with heavy tails
-        t_draws = rng.standard_t(df=df_val, size=n_sims)
-        u_draws = t.cdf(t_draws, df=df_val)
-        u_draws = np.clip(u_draws, 1e-7, 1.0 - 1e-7)
-        z_factors = norm.ppf(u_draws)
-        copula_label = f"Student's t-Copula (Heavy Tail, ν={df_val})"
-    else:
-        # Standard Gaussian Copula (Normal distribution)
-        z_factors = rng.normal(loc=0.0, scale=1.0, size=n_sims)
-        copula_label = "Gaussian Copula (Standard Normal)"
+    # ==================== DUAL COPULA MODELING ====================
+    # Both Gaussian Copula (Normal) and Student's t-Copula (Heavy Tail) run together internally
+    copula_clean = (copula_type or "dual").lower().strip()
+    df_val = max(3, int(degrees_of_freedom))
+
+    from scipy.stats import t, norm
+
+    # 1. Standard Gaussian Copula draws (Standard Normal)
+    z_factors_gauss = rng.normal(loc=0.0, scale=1.0, size=n_sims)
+
+    # 2. Student's t-Copula draws (Heavy Tail with degrees of freedom df_val)
+    t_draws = rng.standard_t(df=df_val, size=n_sims)
+    u_draws = t.cdf(t_draws, df=df_val)
+    u_draws = np.clip(u_draws, 1e-7, 1.0 - 1e-7)
+    z_factors_student = norm.ppf(u_draws)
 
     # Monthly net interest income baseline (NII) net of funding costs
     net_margin = max(0.008, np.mean(interest_rates) - rate_shock * 0.4)
     if liquidity_drawdown > 0:
         net_margin += 0.002  # Buffer NII margin from liquidity facility
     monthly_nii_base = (total_portfolio * net_margin) / 12.0
-
-    capital_paths = np.zeros((n_sims, horizon_months + 1), dtype=np.float64)
-    capital_paths[:, 0] = initial_capital
-
-    total_losses = np.zeros(n_sims, dtype=np.float64)
     monthly_base_loss = np.sum(outstanding * base_pd * lgd) / 12.0
 
-    for m in range(horizon_months):
-        time_stress_curve = 0.4 + 0.9 * np.sin(np.pi * (m + 1) / 24.0)
-        path_loss_mult = np.exp((shock_magnitude * time_stress_curve) - (0.45 * z_factors))
-        monthly_noise = rng.normal(loc=1.0, scale=0.06, size=n_sims)
-        monthly_path_losses = np.clip(monthly_base_loss * path_loss_mult * monthly_noise, 0.0, initial_capital * 0.20)
+    # Helper function to run trajectory simulation for a set of z_factors
+    def simulate_paths(z_facs: np.ndarray):
+        cap_paths = np.zeros((n_sims, horizon_months + 1), dtype=np.float64)
+        cap_paths[:, 0] = initial_capital
+        tot_losses = np.zeros(n_sims, dtype=np.float64)
 
-        previous_capital = capital_paths[:, m]
-        current_capital = previous_capital + monthly_nii_base - monthly_path_losses
-        capital_paths[:, m + 1] = current_capital
-        total_losses += monthly_path_losses
+        # Re-seed monthly noise for exact paired alignment
+        noise_rng = np.random.default_rng(seed if seed is not None else 42)
+
+        for m in range(horizon_months):
+            time_stress_curve = 0.4 + 0.9 * np.sin(np.pi * (m + 1) / 24.0)
+            path_loss_mult = np.exp((shock_magnitude * time_stress_curve) - (0.45 * z_facs))
+            monthly_noise = noise_rng.normal(loc=1.0, scale=0.06, size=n_sims)
+            monthly_path_losses = np.clip(monthly_base_loss * path_loss_mult * monthly_noise, 0.0, initial_capital * 0.20)
+
+            previous_capital = cap_paths[:, m]
+            current_capital = previous_capital + monthly_nii_base - monthly_path_losses
+            cap_paths[:, m + 1] = current_capital
+            tot_losses += monthly_path_losses
+
+        return cap_paths, tot_losses
+
+    # Run BOTH copula paths internally
+    capital_paths_gauss, total_losses_gauss = simulate_paths(z_factors_gauss)
+    capital_paths_student, total_losses_student = simulate_paths(z_factors_student)
+
+    # Select primary outputs based on copula_clean parameter
+    if copula_clean == "gaussian":
+        capital_paths = capital_paths_gauss
+        total_losses = total_losses_gauss
+        copula_label = "Gaussian Copula (Standard Normal Baseline)"
+    elif copula_clean == "student_t":
+        capital_paths = capital_paths_student
+        total_losses = total_losses_student
+        copula_label = f"Student's t-Copula (Heavy Tail, ν={df_val})"
+    else:
+        # Default "dual" mode: uses Student's t as primary conservative baseline with dual comparison
+        capital_paths = capital_paths_student
+        total_losses = total_losses_student
+        copula_label = f"Dual Copula Engine (Gaussian Baseline + Student-t Fat-Tail ν={df_val})"
 
     loan_expected_losses = (outstanding * base_pd * lgd) * (1.0 + shock_magnitude)
     df["sim_loss"] = loan_expected_losses
@@ -149,6 +173,24 @@ def run_monte_carlo_vectorized(
 
     sample_indices = rng.choice(n_sims, size=min(200, n_sims), replace=False)
     sample_losses = total_losses[sample_indices].tolist()
+
+    # Calculate Dual Tail Risk Comparison Metrics
+    p95_gauss = float(np.percentile(total_losses_gauss, 95))
+    p95_student = float(np.percentile(total_losses_student, 95))
+    tail_risk_gap_loss = max(0.0, p95_student - p95_gauss)
+    tail_risk_gap_pct = float((tail_risk_gap_loss / p95_gauss * 100.0) if p95_gauss > 0 else 0.0)
+
+    tail_risk_comparison = {
+        "gaussian_expected_loss": float(np.mean(total_losses_gauss)),
+        "gaussian_p95_loss": p95_gauss,
+        "gaussian_survived_pct": float((capital_paths_gauss[:, -1] > 0).mean() * 100.0),
+        "student_t_expected_loss": float(np.mean(total_losses_student)),
+        "student_t_p95_loss": p95_student,
+        "student_t_survived_pct": float((capital_paths_student[:, -1] > 0).mean() * 100.0),
+        "tail_risk_gap_loss": tail_risk_gap_loss,
+        "tail_risk_gap_pct": tail_risk_gap_pct,
+        "summary_insight": f"Student's t heavy-tail copula increases P95 extreme losses by ${tail_risk_gap_loss / 1e6:.2f}M (+{tail_risk_gap_pct:.1f}%) over standard Gaussian baseline.",
+    }
 
     segment_by_type = []
     for ltype, group in df.groupby("loan_type"):
@@ -181,7 +223,7 @@ def run_monte_carlo_vectorized(
     return {
         "scenario_name": "Monte Carlo Stress Test",
         "copula_type": copula_clean,
-        "degrees_of_freedom": degrees_of_freedom if copula_clean == "student_t" else 0,
+        "degrees_of_freedom": df_val,
         "copula_label": copula_label,
         "params": {
             "unemployment_shock": unemployment_shock,
@@ -193,6 +235,7 @@ def run_monte_carlo_vectorized(
             "seed": seed,
         },
         "summary": summary,
+        "tail_risk_comparison": tail_risk_comparison,
         "distribution": sample_losses,
         "capital_paths": {
             "p5": p5.tolist(),

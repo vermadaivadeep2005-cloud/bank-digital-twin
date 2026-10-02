@@ -95,7 +95,7 @@ export interface StressTestPayload {
   scenario_name: string;
   unemployment_shock: number;
   rate_shock: number;
-  copula_type?: "gaussian" | "student_t" | string;
+  copula_type?: "dual" | "gaussian" | "student_t" | string;
   degrees_of_freedom?: number;
   n_sims: number;
   horizon_months: number;
@@ -114,6 +114,18 @@ export interface StressSummary {
   n_loans: number;
 }
 
+export interface TailRiskComparison {
+  gaussian_expected_loss: number;
+  gaussian_p95_loss: number;
+  gaussian_survived_pct: number;
+  student_t_expected_loss: number;
+  student_t_p95_loss: number;
+  student_t_survived_pct: number;
+  tail_risk_gap_loss: number;
+  tail_risk_gap_pct: number;
+  summary_insight: string;
+}
+
 export interface SegmentImpact {
   category: string;
   expected_loss: number;
@@ -127,6 +139,7 @@ export interface StressTestResponse {
   copula_label?: string;
   params: StressTestPayload;
   summary: StressSummary;
+  tail_risk_comparison?: TailRiskComparison;
   distribution: number[];
   capital_paths: { p5: number[]; p50: number[]; p95: number[] };
   survived_pct: number;

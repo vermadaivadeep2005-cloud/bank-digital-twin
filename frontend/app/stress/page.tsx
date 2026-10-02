@@ -110,7 +110,7 @@ function StressContent() {
       scenario_name: initialParams.scenario_name || "Custom Scenario",
       unemployment_shock: initialParams.unemployment_shock ?? 0.05,
       rate_shock: initialParams.rate_shock ?? 0.02,
-      copula_type: "gaussian",
+      copula_type: "dual",
       degrees_of_freedom: 5,
       n_sims: 1000,
       horizon_months: 24,
@@ -330,10 +330,63 @@ function StressContent() {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-300 font-mono">
                     <span className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-purple-400" />
-                      <span>Copula Model Active: <strong>{result.copula_label}</strong></span>
+                      <span>Copula Engine Active: <strong>{result.copula_label}</strong></span>
                     </span>
                     <span>Vectorized Paths: {result.params?.n_sims || 1000}</span>
                   </div>
+                )}
+
+                {/* Dual Copula Internal Tail Risk Comparison Card */}
+                {result.tail_risk_comparison && (
+                  <Card className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-indigo-500/30">
+                    <div className="flex items-center justify-between border-b border-indigo-500/20 pb-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-indigo-400" />
+                        <span className="text-xs font-bold text-white tracking-tight uppercase font-mono">
+                          Dual Copula Internal Tail Risk Analysis
+                        </span>
+                      </div>
+                      <Badge variant="warning" className="text-[10px] font-mono">
+                        Fat-Tail Gap: +{result.tail_risk_comparison.tail_risk_gap_pct.toFixed(1)}% Extreme Risk
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                        <span className="text-[10px] text-slate-400 uppercase">Gaussian Baseline (P95)</span>
+                        <div className="text-base font-bold text-slate-200">
+                          {formatCurrency(result.tail_risk_comparison.gaussian_p95_loss, true)}
+                        </div>
+                        <div className="text-[10px] text-emerald-400">
+                          Survival: {result.tail_risk_comparison.gaussian_survived_pct.toFixed(1)}%
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-950/60 border border-purple-900/40 space-y-1">
+                        <span className="text-[10px] text-purple-400 uppercase">Student's t Fat-Tail (P95)</span>
+                        <div className="text-base font-bold text-purple-300">
+                          {formatCurrency(result.tail_risk_comparison.student_t_p95_loss, true)}
+                        </div>
+                        <div className="text-[10px] text-amber-400">
+                          Survival: {result.tail_risk_comparison.student_t_survived_pct.toFixed(1)}%
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/30 space-y-1">
+                        <span className="text-[10px] text-indigo-300 uppercase">Systemic Crisis Tail Buffer</span>
+                        <div className="text-base font-bold text-indigo-400">
+                          +{formatCurrency(result.tail_risk_comparison.tail_risk_gap_loss, true)}
+                        </div>
+                        <div className="text-[10px] text-indigo-300/80">
+                          Joint default correlation premium
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 mt-3 italic bg-slate-950/40 p-2 rounded-lg border border-slate-800/80">
+                      💡 {result.tail_risk_comparison.summary_insight}
+                    </p>
+                  </Card>
                 )}
 
                 {/* Top 4 Metric Cards */}

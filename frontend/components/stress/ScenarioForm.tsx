@@ -25,8 +25,8 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
   const [scenarioName, setScenarioName] = React.useState(initialParams?.scenario_name || "Custom Stress Scenario");
   const [unemploymentShock, setUnemploymentShock] = React.useState(initialParams?.unemployment_shock ?? 0.05);
   const [rateShock, setRateShock] = React.useState(initialParams?.rate_shock ?? 0.02);
-  const [copulaType, setCopulaType] = React.useState<"gaussian" | "student_t">(
-    (initialParams?.copula_type as "student_t") || "gaussian"
+  const [copulaType, setCopulaType] = React.useState<"dual" | "gaussian" | "student_t">(
+    (initialParams?.copula_type as "dual" | "gaussian" | "student_t") || "dual"
   );
   const [degreesOfFreedom, setDegreesOfFreedom] = React.useState(initialParams?.degrees_of_freedom ?? 5);
   const [nSims, setNSims] = React.useState(initialParams?.n_sims ?? 1000);
@@ -192,39 +192,54 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
         <div className="space-y-2 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
           <div className="flex items-center justify-between text-xs">
             <span className="text-slate-300 font-semibold flex items-center gap-1.5">
-              <span>Vasicek Copula Model</span>
+              <span>Vasicek Copula Engine</span>
             </span>
             <Badge variant="info" className="text-[10px]">
-              {copulaType === "student_t" ? `Student-t (ν=${degreesOfFreedom})` : "Gaussian"}
+              {copulaType === "dual"
+                ? `Dual Copula (Both, ν=${degreesOfFreedom})`
+                : copulaType === "student_t"
+                ? `Student-t (ν=${degreesOfFreedom})`
+                : "Gaussian Only"}
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900 rounded-xl border border-slate-800 text-[11px]">
+            <button
+              type="button"
+              onClick={() => setCopulaType("dual")}
+              className={`py-1.5 px-1.5 rounded-lg font-semibold transition text-center ${
+                copulaType === "dual"
+                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30 font-bold"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Dual (Both)
+            </button>
             <button
               type="button"
               onClick={() => setCopulaType("gaussian")}
-              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+              className={`py-1.5 px-1.5 rounded-lg font-semibold transition text-center ${
                 copulaType === "gaussian"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-bold"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Gaussian Copula
+              Gaussian
             </button>
             <button
               type="button"
               onClick={() => setCopulaType("student_t")}
-              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+              className={`py-1.5 px-1.5 rounded-lg font-semibold transition text-center ${
                 copulaType === "student_t"
                   ? "bg-purple-600 text-white shadow-md shadow-purple-600/20 font-bold"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Student's t-Copula
+              Student-t
             </button>
           </div>
 
-          {copulaType === "student_t" && (
+          {copulaType !== "gaussian" && (
             <div className="mt-2 space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-400">
                 <span>Tail Dependence DF (ν)</span>
