@@ -1,0 +1,31 @@
+member_id,loan_amnt,funded_amnt,out_prncp,int_rate,annual_inc,fico_range_low,emp_length,addr_state,purpose,currency,loan_status
+MEM-1001,450000,450000,380000,5.5%,125000,740,10+ years,CA,mortgage,USD,Current
+MEM-1002,2957500,2957500,1859000,9.5%,7182500,680,5 years,NY,debt_consolidation,INR,Current
+MEM-1003,750000,750000,520000,6.5%,210000,810,10+ years,TX,small_business,USD,Current
+MEM-1004,25760,25760,17480,11.5%,53360,620,2 years,FL,car,EUR,Late (31-120 days)
+MEM-1005,241800,241800,163800,4.8%,74880,715,retired,IL,mortgage,GBP,Current
+MEM-1006,950000,950000,680000,5.8%,175000,790,8 years,WA,small_business,USD,Current
+MEM-1007,2704000,2704000,2028000,8.9%,5239000,650,4 years,AZ,car,INR,Late (31-120 days)
+MEM-1008,520000,520000,410000,5.2%,140000,760,6 years,NJ,mortgage,USD,Current
+MEM-1009,16560,16560,13800,14.5%,41400,590,1 year,OH,credit_card,EUR,Charged Off
+MEM-1010,936000,936000,663000,4.9%,226200,825,10+ years,MA,small_business,GBP,Current
+MEM-1011,320000,320000,240000,6.2%,115000,735,7 years,GA,debt_consolidation,USD,Current
+MEM-1012,4120000,4120000,3090000,9.2%,8500000,670,3 years,MH,mortgage,INR,Current
+MEM-1013,18500,18500,12950,12.8%,48000,605,2 years,NV,car,EUR,Late (31-120 days)
+MEM-1014,640000,640000,480000,5.6%,160000,780,9 years,VA,mortgage,USD,Current
+MEM-1015,312000,312000,218400,5.1%,85800,720,retired,LN,small_business,GBP,Current
+MEM-1016,120000,120000,84000,7.1%,68000,700,5 years,NC,debt_consolidation,USD,Current
+MEM-1017,1944000,1944000,1458000,8.7%,4320000,660,4 years,KA,car,INR,Current
+MEM-1018,48000,48000,38400,13.2%,39000,580,unemployed,ES,credit_card,EUR,Charged Off
+MEM-1019,820000,820000,615000,5.4%,190000,800,10+ years,CO,mortgage,USD,Current
+MEM-1020,546000,546000,382200,4.7%,148200,750,8 years,SCT,small_business,GBP,Current
+MEM-1021,280000,280000,210000,6.8%,95000,710,6 years,MI,debt_consolidation,USD,Current
+MEM-1022,3380000,3380000,2535000,9.0%,6760000,675,5 years,DL,mortgage,INR,Current
+MEM-1023,22000,22000,15400,10.8%,46000,630,3 years,IT,car,EUR,Late (31-120 days)
+MEM-1024,580000,580000,406000,5.9%,155000,775,9 years,OR,mortgage,USD,Current
+MEM-1025,429000,429000,300300,5.0%,117000,730,7 years,WLS,small_business,GBP,Current
+MEM-1026,350000,350000,245000,6.4%,105000,725,6 years,PA,debt_consolidation,USD,Current
+MEM-1027,5070000,5070000,3802500,8.8%,9295000,685,8 years,TN,mortgage,INR,Current
+MEM-1028,14000,14000,9800,15.0%,35000,575,1 year,FR,credit_card,EUR,Charged Off
+MEM-1029,910000,910000,637000,5.3%,205000,815,10+ years,MD,small_business,USD,Current
+MEM-1030,273000,273000,191100,4.6%,74100,745,retired,ENG,mortgage,GBP,Current

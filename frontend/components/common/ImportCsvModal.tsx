@@ -50,6 +50,24 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
     toast.success("Downloaded sample multi-currency CSV template!");
   };
 
+  const handleDownloadKaggleCsv = () => {
+    const headers = [
+      "member_id", "loan_amnt", "funded_amnt", "out_prncp", "int_rate", "annual_inc",
+      "fico_range_low", "emp_length", "addr_state", "purpose", "currency", "loan_status"
+    ];
+    const rows = [
+      ["MEM-1001", 450000, 450000, 380000, "5.5%", 125000, 740, "10+ years", "CA", "mortgage", "USD", "Current"],
+      ["MEM-1002", 2957500, 2957500, 1859000, "9.5%", 7182500, 680, "5 years", "NY", "debt_consolidation", "INR", "Current"],
+      ["MEM-1003", 750000, 750000, 520000, "6.5%", 210000, 810, "10+ years", "TX", "small_business", "USD", "Current"],
+      ["MEM-1004", 25760, 25760, 17480, "11.5%", 53360, 620, "2 years", "FL", "car", "EUR", "Late (31-120 days)"],
+      ["MEM-1005", 241800, 241800, 163800, "4.8%", 74880, 715, "retired", "IL", "mortgage", "GBP", "Current"],
+      ["MEM-1006", 950000, 950000, 680000, "5.8%", 175000, 790, "8 years", "WA", "small_business", "USD", "Current"],
+      ["MEM-1009", 16560, 16560, 13800, "14.5%", 41400, 590, "1 year", "OH", "credit_card", "EUR", "Charged Off"],
+    ];
+    downloadCsv(headers, rows, "kaggle_lendingclub_sample_portfolio.csv");
+    toast.success("Downloaded Kaggle LendingClub sample CSV dataset!");
+  };
+
   const parseCsvPreview = (selectedFile: File) => {
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -169,13 +187,22 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             <span className="font-semibold text-white text-xs font-mono uppercase tracking-wider">
               Required & Optional CSV Columns Guidelines
             </span>
-            <button
-              onClick={handleDownloadSample}
-              className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Multi-Currency Template</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleDownloadKaggleCsv}
+                className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Kaggle Sample CSV</span>
+              </button>
+              <button
+                onClick={handleDownloadSample}
+                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Standard Template</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
