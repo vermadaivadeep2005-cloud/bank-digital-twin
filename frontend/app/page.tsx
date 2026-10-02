@@ -20,7 +20,6 @@ import {
   Sliders,
   FileText,
   Upload,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { KpiCard } from "@/components/charts/KpiCard";
@@ -238,18 +237,6 @@ export default function OverviewPage() {
             </Button>
           </div>
         </div>
-
-        {kpis && kpis.total_loans === 0 && (
-          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>No portfolio data found in database. Card metrics will show <strong>N/A</strong> or <strong>₹0</strong> until data is generated or imported.</span>
-            </div>
-            <Button size="sm" onClick={handleGenerate} loading={generating} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs h-7 px-3 rounded-lg shadow-sm">
-              Generate Bank Data
-            </Button>
-          </div>
-        )}
 
         {loading || !kpis ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
