@@ -209,78 +209,78 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             <table className="w-full text-[11px] text-left border-collapse">
               <thead className="bg-slate-900 text-indigo-300 font-mono text-[10px] uppercase border-b border-slate-800">
                 <tr>
-                  <th className="p-2 border-r border-slate-800">Column Header</th>
-                  <th className="p-2 border-r border-slate-800">Required</th>
+                  <th className="p-2 border-r border-slate-800">Standard / Kaggle Header</th>
+                  <th className="p-2 border-r border-slate-800">Kaggle LendingClub Alias</th>
                   <th className="p-2 border-r border-slate-800">Format / Acceptable Values</th>
                   <th className="p-2">Multi-Currency Example</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 font-mono text-slate-300">
                 <tr>
-                  <td className="p-2 border-r border-slate-800 font-semibold text-white">name</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">String (Full Name)</td>
-                  <td className="p-2 text-cyan-300">&quot;Alexander Wright&quot;</td>
+                  <td className="p-2 border-r border-slate-800 font-semibold text-white">member_id / name</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">member_id</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">String (ID or Full Name)</td>
+                  <td className="p-2 text-cyan-300">&quot;MEM-1001&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">credit_score</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">fico_range_low</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">Integer (300 to 850)</td>
                   <td className="p-2 text-cyan-300">740</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">income</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">annual_inc</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">Float Income (USD, INR, EUR, GBP)</td>
                   <td className="p-2 text-cyan-300">7182500</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">loan_type</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">purpose / title</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">mortgage, personal, auto, business</td>
-                  <td className="p-2 text-cyan-300">&quot;mortgage&quot;</td>
+                  <td className="p-2 text-cyan-300">&quot;mortgage&quot; / &quot;debt_consolidation&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">principal</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">loan_amnt / funded_amnt</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">Float Principal Amount (Multi-Currency)</td>
                   <td className="p-2 text-cyan-300">2957500</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">outstanding</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">out_prncp</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">Float Current Balance (Multi-Currency)</td>
                   <td className="p-2 text-cyan-300">1859000</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">interest_rate</td>
-                  <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">Decimal rate (0.055 or 5.5%)</td>
-                  <td className="p-2 text-cyan-300">0.055</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">int_rate</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Decimal or % string (0.055 or 5.5%)</td>
+                  <td className="p-2 text-cyan-300">0.055 / 5.5%</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">currency</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">Optional</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">currency</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">USD, INR, EUR, GBP (Defaults to USD)</td>
                   <td className="p-2 text-cyan-300">&quot;INR&quot; / &quot;EUR&quot; / &quot;GBP&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">status</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">Optional</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">current, delinquent, default (Inferred if empty)</td>
-                  <td className="p-2 text-cyan-300">&quot;current&quot;</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">loan_status</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Current, Late, Charged Off, Fully Paid</td>
+                  <td className="p-2 text-cyan-300">&quot;Current&quot; / &quot;Late (31-120 days)&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">employment_status</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-500">Optional</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">emp_length / job</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">employed, self-employed, unemployed, retired</td>
-                  <td className="p-2 text-cyan-300">&quot;employed&quot;</td>
+                  <td className="p-2 text-cyan-300">&quot;10+ years&quot; / &quot;5 years&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">region</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-500">Optional</td>
+                  <td className="p-2 border-r border-slate-800 text-amber-400">addr_state</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400">State / Region String</td>
-                  <td className="p-2 text-cyan-300">&quot;California&quot;</td>
+                  <td className="p-2 text-cyan-300">&quot;CA&quot; / &quot;NY&quot; / &quot;TX&quot;</td>
                 </tr>
               </tbody>
             </table>
