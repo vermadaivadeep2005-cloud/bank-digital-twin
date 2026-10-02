@@ -184,7 +184,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         
         name = clean_row.get("name") or clean_row.get("customer_name") or clean_row.get("member_id") or fake.name()
 
-        # Credit Score (support Kaggle fico_range_low / fico_range_high / score)
+        # Credit Score (support standard institutional aliases: fico_range_low / fico_range_high / score)
         cs_raw = clean_row.get("credit_score") or clean_row.get("fico_range_low") or clean_row.get("score") or "700"
         try:
             cs = int(float(cs_raw))
@@ -192,7 +192,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
             cs = 700
         cs = max(300, min(850, cs))
 
-        # Income (support Kaggle annual_inc / monthlyincome)
+        # Income (support standard institutional aliases: annual_inc / monthlyincome)
         inc_raw = clean_row.get("income") or clean_row.get("annual_inc") or clean_row.get("monthlyincome") or "75000"
         try:
             raw_income = float(inc_raw)
@@ -205,7 +205,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         except (ValueError, TypeError):
             age = 40
 
-        # Employment (support Kaggle emp_length / job)
+        # Employment (support standard institutional aliases: emp_length / job)
         emp_raw = (clean_row.get("employment_status") or clean_row.get("emp_length") or clean_row.get("job") or "employed").lower()
         if "self" in emp_raw:
             emp = "self-employed"
@@ -216,7 +216,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         else:
             emp = "employed"
 
-        # Region (support Kaggle addr_state / state)
+        # Region (support standard institutional aliases: addr_state / state)
         region = clean_row.get("region") or clean_row.get("state") or clean_row.get("addr_state") or fake.state()
 
         c = Customer(
@@ -233,7 +233,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         acc_bal = max(1000.0, income * 0.15)
         accounts.append(Account(customer=c, account_type="checking", balance=acc_bal))
 
-        # Parse loan details (support Kaggle loan_amnt / funded_amnt / out_prncp / int_rate)
+        # Parse loan details (support standard institutional aliases: loan_amnt / funded_amnt / out_prncp / int_rate)
         prin_raw = clean_row.get("principal") or clean_row.get("loan_amnt") or clean_row.get("funded_amnt") or "250000"
         try:
             raw_principal = float(prin_raw)
@@ -250,7 +250,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
 
         rate_raw = clean_row.get("interest_rate") or clean_row.get("int_rate") or "0.055"
         try:
-            # Handle percentage string e.g. "11.5%" or 11.5 from Kaggle
+            # Handle percentage string e.g. "11.5%" or 11.5
             if isinstance(rate_raw, str):
                 rate_raw = rate_raw.replace("%", "").strip()
             rate_val = float(rate_raw)
@@ -259,7 +259,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         except (ValueError, TypeError):
             rate_val = 0.055
 
-        # Loan Type (support Kaggle purpose / title)
+        # Loan Type (support standard institutional aliases: purpose / title)
         lt_raw = (clean_row.get("loan_type") or clean_row.get("purpose") or clean_row.get("title") or "mortgage").lower()
         if "auto text" in lt_raw or "car" in lt_raw:
             loan_type = "auto"
@@ -270,7 +270,7 @@ def import_csv_bank_data(db: Session, csv_content: str):
         else:
             loan_type = "mortgage"
 
-        # Determine loan status (support Kaggle loan_status)
+        # Determine loan status (support standard institutional aliases: loan_status)
         raw_status = (clean_row.get("status") or clean_row.get("loan_status") or "").lower()
         if "paid" in raw_status or "current" in raw_status:
             status = "current"

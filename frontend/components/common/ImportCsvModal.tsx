@@ -50,7 +50,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
     toast.success("Downloaded sample multi-currency CSV template!");
   };
 
-  const handleDownloadKaggleCsv = () => {
+  const handleDownloadInstitutionalCsv = () => {
     const headers = [
       "member_id", "loan_amnt", "funded_amnt", "out_prncp", "int_rate", "annual_inc",
       "fico_range_low", "emp_length", "addr_state", "purpose", "currency", "loan_status"
@@ -64,8 +64,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
       ["MEM-1006", 950000, 950000, 680000, "5.8%", 175000, 790, "8 years", "WA", "small_business", "USD", "Current"],
       ["MEM-1009", 16560, 16560, 13800, "14.5%", 41400, 590, "1 year", "OH", "credit_card", "EUR", "Charged Off"],
     ];
-    downloadCsv(headers, rows, "kaggle_lendingclub_sample_portfolio.csv");
-    toast.success("Downloaded Kaggle LendingClub sample CSV dataset!");
+    downloadCsv(headers, rows, "institutional_portfolio_sample.csv");
+    toast.success("Downloaded Institutional Sample CSV Dataset!");
   };
 
   const parseCsvPreview = (selectedFile: File) => {
@@ -167,15 +167,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               The engine automatically normalizes multi-currency figures into baseline risk metrics while preserving customer data.
             </p>
             <div className="pt-1 text-[11px] text-amber-300/90 font-mono flex items-center gap-1.5">
-              <span>🏆 Kaggle Benchmark Compatible:</span>
-              <a
-                href="https://www.kaggle.com/datasets/wordsforthewise/lending-club"
-                target="_blank"
-                rel="noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 underline font-sans"
-              >
-                Kaggle LendingClub Loan Data
-              </a>
+              <span>🏛️ Institutional Benchmark Schema:</span>
+              <span className="text-cyan-400 font-sans font-semibold">Standard Credit Risk Format</span>
               <span>(auto-maps loan_amnt, annual_inc, int_rate, etc.)</span>
             </div>
           </div>
@@ -189,11 +182,11 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             </span>
             <div className="flex items-center space-x-3">
               <button
-                onClick={handleDownloadKaggleCsv}
+                onClick={handleDownloadInstitutionalCsv}
                 className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Download Kaggle Sample CSV</span>
+                <span>Download Institutional Sample CSV</span>
               </button>
               <button
                 onClick={handleDownloadSample}
@@ -209,8 +202,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             <table className="w-full text-[11px] text-left border-collapse">
               <thead className="bg-slate-900 text-indigo-300 font-mono text-[10px] uppercase border-b border-slate-800">
                 <tr>
-                  <th className="p-2 border-r border-slate-800">Standard / Kaggle Header</th>
-                  <th className="p-2 border-r border-slate-800">Kaggle LendingClub Alias</th>
+                  <th className="p-2 border-r border-slate-800">Standard Field</th>
+                  <th className="p-2 border-r border-slate-800">Institutional Alias</th>
                   <th className="p-2 border-r border-slate-800">Format / Acceptable Values</th>
                   <th className="p-2">Multi-Currency Example</th>
                 </tr>
