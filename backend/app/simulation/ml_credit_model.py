@@ -146,11 +146,24 @@ def predict_loan_risk_ml(
     emp_num = emp_map.get(employment_status.lower(), 0)
     type_num = type_map.get(loan_type.lower(), 0)
 
+    # Normalize shorthand inputs (e.g., user typing 25 -> $25,000, 34 -> $34,000)
+    norm_principal = float(principal)
+    if 0 < norm_principal < 1000:
+        norm_principal *= 1000.0
+
+    norm_outstanding = float(outstanding)
+    if 0 < norm_outstanding < 1000:
+        norm_outstanding *= 1000.0
+
     monthly_income = max(100.0, income / 12.0)
     r_mo = max(0.0001, interest_rate / 12.0)
     term_months = 360 if type_num == 0 else 60
-    approx_pmt = outstanding * (r_mo * (1 + r_mo)**term_months) / max(1e-5, ((1 + r_mo)**term_months - 1))
+    approx_pmt = norm_outstanding * (r_mo * (1 + r_mo)**term_months) / max(1e-5, ((1 + r_mo)**term_months - 1))
     dti = min(0.95, max(0.05, approx_pmt / monthly_income))
+
+    # Bound features for StandardScaler to prevent out-of-distribution leaf node anomalies
+    bounded_principal = max(1000.0, min(1000000.0, norm_principal))
+    bounded_outstanding = max(500.0, min(1000000.0, norm_outstanding))
 
     input_df = pd.DataFrame([{
         "credit_score": float(credit_score),
@@ -158,8 +171,8 @@ def predict_loan_risk_ml(
         "age": float(age),
         "employment_numeric": float(emp_num),
         "loan_type_numeric": float(type_num),
-        "principal": float(principal),
-        "outstanding": float(outstanding),
+        "principal": float(bounded_principal),
+        "outstanding": float(bounded_outstanding),
         "interest_rate": float(interest_rate),
         "dti": float(dti),
     }])
