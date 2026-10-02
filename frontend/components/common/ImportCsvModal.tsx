@@ -22,35 +22,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
   const [previewRows, setPreviewRows] = React.useState<string[][]>([]);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
-  const handleDownloadSample = () => {
-    const headers = [
-      "name",
-      "credit_score",
-      "income",
-      "age",
-      "employment_status",
-      "region",
-      "loan_type",
-      "principal",
-      "outstanding",
-      "interest_rate",
-      "currency",
-      "status",
-    ];
-
-    const rows = [
-      ["Alexander Wright", 740, 125000, 42, "employed", "California", "mortgage", 450000, 380000, 0.055, "USD", "current"],
-      ["Elena Rostova", 680, 7182500, 36, "self-employed", "New York", "personal", 2957500, 1859000, 0.095, "INR", "current"],
-      ["Marcus Vance", 810, 210000, 51, "employed", "Texas", "business", 750000, 520000, 0.065, "USD", "current"],
-      ["Sophia Lin", 620, 53360, 29, "unemployed", "Florida", "auto", 25760, 17480, 0.115, "EUR", "delinquent"],
-      ["David Miller", 715, 74880, 47, "retired", "Illinois", "mortgage", 241800, 163800, 0.048, "GBP", "current"],
-    ];
-
-    downloadCsv(headers, rows, "cro_multi_currency_template.csv");
-    toast.success("Downloaded sample multi-currency CSV template!");
-  };
-
-  const handleDownloadInstitutionalCsv = () => {
+  const handleDownloadSampleCsv = () => {
     const headers = [
       "member_id", "loan_amnt", "funded_amnt", "out_prncp", "int_rate", "annual_inc",
       "fico_range_low", "emp_length", "addr_state", "purpose", "currency", "loan_status"
@@ -64,8 +36,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
       ["MEM-1006", 950000, 950000, 680000, "5.8%", 175000, 790, "8 years", "WA", "small_business", "USD", "Current"],
       ["MEM-1009", 16560, 16560, 13800, "14.5%", 41400, 590, "1 year", "OH", "credit_card", "EUR", "Charged Off"],
     ];
-    downloadCsv(headers, rows, "institutional_portfolio_sample.csv");
-    toast.success("Downloaded Institutional Sample CSV Dataset!");
+    downloadCsv(headers, rows, "sample_portfolio.csv");
+    toast.success("Downloaded sample portfolio CSV file!");
   };
 
   const parseCsvPreview = (selectedFile: File) => {
@@ -166,11 +138,6 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               Supports single or multi-currency customer books (<span className="text-cyan-300 font-mono">USD, INR, EUR, GBP</span>).
               The engine automatically normalizes multi-currency figures into baseline risk metrics while preserving customer data.
             </p>
-            <div className="pt-1 text-[11px] text-amber-300/90 font-mono flex items-center gap-1.5">
-              <span>🏛️ Institutional Benchmark Schema:</span>
-              <span className="text-cyan-400 font-sans font-semibold">Standard Credit Risk Format</span>
-              <span>(auto-maps loan_amnt, annual_inc, int_rate, etc.)</span>
-            </div>
           </div>
         </div>
 
@@ -180,22 +147,13 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
             <span className="font-semibold text-white text-xs font-mono uppercase tracking-wider">
               Required & Optional CSV Columns Guidelines
             </span>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={handleDownloadInstitutionalCsv}
-                className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Institutional Sample CSV</span>
-              </button>
-              <button
-                onClick={handleDownloadSample}
-                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Standard Template</span>
-              </button>
-            </div>
+            <button
+              onClick={handleDownloadSampleCsv}
+              className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer hover:underline"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Sample CSV Template</span>
+            </button>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
@@ -203,7 +161,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               <thead className="bg-slate-900 text-indigo-300 font-mono text-[10px] uppercase border-b border-slate-800">
                 <tr>
                   <th className="p-2 border-r border-slate-800">Standard Field</th>
-                  <th className="p-2 border-r border-slate-800">Institutional Alias</th>
+                  <th className="p-2 border-r border-slate-800">Supported Alias</th>
                   <th className="p-2 border-r border-slate-800">Format / Acceptable Values</th>
                   <th className="p-2">Multi-Currency Example</th>
                 </tr>
