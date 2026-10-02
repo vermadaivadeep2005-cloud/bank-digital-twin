@@ -1,4 +1,4 @@
-export type CurrencyCode = "USD" | "INR" | "AED" | "EUR" | "GBP";
+export type CurrencyCode = "USD" | "INR" | "EUR" | "GBP";
 
 export interface CurrencyConfig {
   code: CurrencyCode;
@@ -12,7 +12,6 @@ export interface CurrencyConfig {
 export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: "USD", symbol: "$", name: "US Dollar", flag: "🇺🇸", rate: 1.0, locale: "en-US" },
   INR: { code: "INR", symbol: "₹", name: "Indian Rupee", flag: "🇮🇳", rate: 84.5, locale: "en-IN" },
-  AED: { code: "AED", symbol: "د.إ", name: "UAE Dirham", flag: "🇦🇪", rate: 3.67, locale: "ar-AE" },
   EUR: { code: "EUR", symbol: "€", name: "Euro", flag: "🇪🇺", rate: 0.92, locale: "de-DE" },
   GBP: { code: "GBP", symbol: "£", name: "British Pound", flag: "🇬🇧", rate: 0.78, locale: "en-GB" },
 };

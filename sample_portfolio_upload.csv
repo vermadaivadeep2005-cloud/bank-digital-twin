@@ -1,11 +1,11 @@
 name,credit_score,income,age,employment_status,region,loan_type,principal,outstanding,interest_rate,currency,status
 Alexander Wright,740,125000,42,employed,California,mortgage,450000,380000,0.055,USD,current
 Elena Rostova,680,7182500,36,self-employed,New York,personal,2957500,1859000,0.095,INR,current
-Marcus Vance,810,770700,51,employed,Texas,business,2752500,1908400,0.065,AED,current
+Marcus Vance,810,210000,51,employed,Texas,business,750000,520000,0.065,USD,current
 Sophia Lin,620,53360,29,unemployed,Florida,auto,25760,17480,0.115,EUR,delinquent
 David Miller,715,74880,47,retired,Illinois,mortgage,241800,163800,0.048,GBP,current
 Samantha Reed,790,175000,39,employed,Washington,commercial,950000,680000,0.058,USD,current
 Carlos Mendez,650,5239000,33,employed,Arizona,auto,2704000,2028000,0.089,INR,delinquent
-Priya Patel,760,513800,44,employed,New Jersey,mortgage,1908400,1504700,0.052,AED,current
+Priya Patel,760,140000,44,employed,New Jersey,mortgage,520000,410000,0.052,USD,current
 Robert Chen,590,41400,28,self-employed,Ohio,personal,16560,13800,0.145,EUR,default
 Victoria Sterling,825,226200,58,employed,Massachusetts,business,936000,663000,0.049,GBP,current

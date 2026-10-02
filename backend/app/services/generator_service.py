@@ -168,12 +168,10 @@ def import_csv_bank_data(db: Session, csv_content: str):
     CURRENCY_TO_USD_RATES = {
         "USD": 1.0,
         "INR": 1.0 / 84.50,
-        "AED": 1.0 / 3.67,
         "EUR": 1.0 / 0.92,
         "GBP": 1.0 / 0.78,
         "RS": 1.0 / 84.50,
         "RUPEES": 1.0 / 84.50,
-        "DIRHAM": 1.0 / 3.67,
     }
 
     for row in reader:

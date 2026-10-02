@@ -41,7 +41,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
     const rows = [
       ["Alexander Wright", 740, 125000, 42, "employed", "California", "mortgage", 450000, 380000, 0.055, "USD", "current"],
       ["Elena Rostova", 680, 7182500, 36, "self-employed", "New York", "personal", 2957500, 1859000, 0.095, "INR", "current"],
-      ["Marcus Vance", 810, 770700, 51, "employed", "Texas", "business", 2752500, 1908400, 0.065, "AED", "current"],
+      ["Marcus Vance", 810, 210000, 51, "employed", "Texas", "business", 750000, 520000, 0.065, "USD", "current"],
       ["Sophia Lin", 620, 53360, 29, "unemployed", "Florida", "auto", 25760, 17480, 0.115, "EUR", "delinquent"],
       ["David Miller", 715, 74880, 47, "retired", "Illinois", "mortgage", 241800, 163800, 0.048, "GBP", "current"],
     ];
@@ -145,7 +145,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               Upload Custom Bank Balance Sheet & Multi-Currency Portfolio
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Supports single or multi-currency customer books (<span className="text-cyan-300 font-mono">USD, INR, AED, EUR, GBP</span>).
+              Supports single or multi-currency customer books (<span className="text-cyan-300 font-mono">USD, INR, EUR, GBP</span>).
               The engine automatically normalizes multi-currency figures into baseline risk metrics while preserving customer data.
             </p>
           </div>
@@ -192,7 +192,7 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">income</td>
                   <td className="p-2 border-r border-slate-800 text-emerald-400">Yes</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Income (USD, INR, AED, EUR, GBP)</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">Float Income (USD, INR, EUR, GBP)</td>
                   <td className="p-2 text-cyan-300">7182500</td>
                 </tr>
                 <tr>
@@ -222,8 +222,8 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">currency</td>
                   <td className="p-2 border-r border-slate-800 text-slate-400 font-semibold">Optional</td>
-                  <td className="p-2 border-r border-slate-800 text-slate-400">USD, INR, AED, EUR, GBP (Defaults to USD)</td>
-                  <td className="p-2 text-cyan-300">&quot;INR&quot; / &quot;AED&quot; / &quot;EUR&quot;</td>
+                  <td className="p-2 border-r border-slate-800 text-slate-400">USD, INR, EUR, GBP (Defaults to USD)</td>
+                  <td className="p-2 text-cyan-300">&quot;INR&quot; / &quot;EUR&quot; / &quot;GBP&quot;</td>
                 </tr>
                 <tr>
                   <td className="p-2 border-r border-slate-800 font-semibold text-white">status</td>
