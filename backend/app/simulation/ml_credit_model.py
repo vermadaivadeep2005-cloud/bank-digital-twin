@@ -39,14 +39,21 @@ def _build_training_data(n_samples: int = 2500) -> Tuple[pd.DataFrame, np.ndarra
     interest_rates = rng.normal(0.07, 0.02, n_samples).clip(0.01, 0.25)
 
     monthly_income = incomes / 12.0
-    approx_monthly_pmt = (outstandings * (interest_rates / 12.0)) + (outstandings / 36.0)
-    dti = np.clip(approx_monthly_pmt / monthly_income, 0.05, 0.95)
+    r_mo = np.maximum(0.0001, interest_rates / 12.0)
+    # Mortgages (360 months), others (60 months)
+    terms = np.where(type_numeric == 0, 360, 60)
+    approx_monthly_pmt = outstandings * (r_mo * (1 + r_mo)**terms) / np.maximum(1e-5, ((1 + r_mo)**terms - 1))
+    dti = np.clip(approx_monthly_pmt / np.maximum(100.0, monthly_income), 0.05, 0.95)
+
+    #Solvency: Higher income and lower DTI reduce default probability
+    income_risk_factor = np.clip(1.0 - (incomes / 120000.0), -0.25, 0.35)
 
     default_prob = (
         (850 - credit_scores) / 550 * 0.35 +
+        income_risk_factor * 0.25 +
         (emp_numeric == 2).astype(float) * 0.30 +
-        (dti > 0.45).astype(float) * 0.25 +
-        (interest_rates > 0.12).astype(float) * 0.15
+        (dti > 0.35).astype(float) * 0.30 +
+        (interest_rates > 0.10).astype(float) * 0.15
     )
     default_prob = np.clip(default_prob, 0.01, 0.90)
     y = (rng.uniform(0, 1, n_samples) < default_prob).astype(int)
@@ -66,9 +73,9 @@ def _build_training_data(n_samples: int = 2500) -> Tuple[pd.DataFrame, np.ndarra
     return X, y
 
 
-def train_and_cache_model() -> Dict[str, Any]:
+def train_and_cache_model(force_retrain: bool = False) -> Dict[str, Any]:
     global _ML_MODEL_STATE
-    if _ML_MODEL_STATE is not None:
+    if _ML_MODEL_STATE is not None and not force_retrain:
         return _ML_MODEL_STATE
 
     logger.info("Training upgraded ML Credit Model with Calibration & SHAP support...")
@@ -140,7 +147,9 @@ def predict_loan_risk_ml(
     type_num = type_map.get(loan_type.lower(), 0)
 
     monthly_income = max(100.0, income / 12.0)
-    approx_pmt = (outstanding * (interest_rate / 12.0)) + (outstanding / 36.0)
+    r_mo = max(0.0001, interest_rate / 12.0)
+    term_months = 360 if type_num == 0 else 60
+    approx_pmt = outstanding * (r_mo * (1 + r_mo)**term_months) / max(1e-5, ((1 + r_mo)**term_months - 1))
     dti = min(0.95, max(0.05, approx_pmt / monthly_income))
 
     input_df = pd.DataFrame([{

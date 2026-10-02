@@ -13,9 +13,30 @@ export function MlRiskPredictor() {
   const [age] = React.useState(40);
   const [employmentStatus, setEmploymentStatus] = React.useState("employed");
   const [loanType, setLoanType] = React.useState("mortgage");
-  const [principal] = React.useState(300000);
-  const [outstanding] = React.useState(220000);
+  const [principal, setPrincipal] = React.useState(250000);
+  const [outstanding, setOutstanding] = React.useState(180000);
   const [interestRate, setInterestRate] = React.useState(0.055);
+
+  const handleLoanTypeChange = (newType: string) => {
+    setLoanType(newType);
+    if (newType === "mortgage") {
+      setPrincipal(250000);
+      setOutstanding(180000);
+      setInterestRate(0.055);
+    } else if (newType === "auto") {
+      setPrincipal(35000);
+      setOutstanding(25000);
+      setInterestRate(0.065);
+    } else if (newType === "personal") {
+      setPrincipal(15000);
+      setOutstanding(10000);
+      setInterestRate(0.095);
+    } else if (newType === "business") {
+      setPrincipal(150000);
+      setOutstanding(110000);
+      setInterestRate(0.075);
+    }
+  };
 
   const [result, setResult] = React.useState<PredictRiskResponse | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -95,7 +116,7 @@ export function MlRiskPredictor() {
               <label className="text-slate-600 dark:text-slate-400 block mb-1">Loan Asset Type</label>
               <select
                 value={loanType}
-                onChange={(e) => setLoanType(e.target.value)}
+                onChange={(e) => handleLoanTypeChange(e.target.value)}
                 className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 text-xs text-slate-900 dark:text-white"
               >
                 <option value="mortgage">Mortgage</option>
@@ -124,6 +145,28 @@ export function MlRiskPredictor() {
                 step="0.1"
                 value={(interestRate * 100).toFixed(1)}
                 onChange={(e) => setInterestRate(parseFloat(e.target.value) / 100 || 0.05)}
+                className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 text-xs text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1">Loan Outstanding ($)</label>
+              <input
+                type="number"
+                value={outstanding}
+                onChange={(e) => setOutstanding(parseFloat(e.target.value) || 1000)}
+                className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 text-xs text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1">Original Principal ($)</label>
+              <input
+                type="number"
+                value={principal}
+                onChange={(e) => setPrincipal(parseFloat(e.target.value) || 1000)}
                 className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 text-xs text-slate-900 dark:text-white"
               />
             </div>
