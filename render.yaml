@@ -12,6 +12,11 @@ services:
         value: backend
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_API_KEY
+        sync: false
+
 
   # 2. Frontend Next.js Web Service
   - type: web
