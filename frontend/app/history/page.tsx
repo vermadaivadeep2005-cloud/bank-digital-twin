@@ -65,15 +65,23 @@ export default function HistoryPage() {
 
   const handleExportCsv = () => {
     const headers = ["ID", "Scenario Name", "Unemployment Shock", "Rate Shock", "Survival Rate %", "Expected Loss ($)", "Timestamp"];
-    const rows = runs.map((r) => [
-      r.id,
-      r.scenario_name,
-      `${((r.params?.unemployment_shock ?? 0) * 100).toFixed(1)}%`,
-      `${((r.params?.rate_shock ?? 0) * 100).toFixed(1)}%`,
-      `${(r.results?.survived_pct ?? 100).toFixed(1)}%`,
-      r.results?.summary?.expected_loss ?? 0,
-      r.created_at || "",
-    ]);
+    const rows = runs.map((r) => {
+      const unempShock = r.params?.unemployment_shock ?? r.results?.breaking_shock?.unemployment_shock;
+      const rateShock = r.params?.rate_shock ?? r.results?.breaking_shock?.rate_shock;
+      const unempStr = unempShock !== undefined ? `${(unempShock * 100).toFixed(1)}%` : "N/A";
+      const rateStr = rateShock !== undefined ? `${(rateShock * 100).toFixed(1)}%` : "N/A";
+      const survivalStr = r.results?.survived_pct !== undefined ? `${r.results.survived_pct.toFixed(1)}%` : r.results?.mitigation_status || "N/A";
+      const expLoss = r.results?.summary?.expected_loss ?? 0;
+      return [
+        r.id,
+        r.scenario_name,
+        unempStr,
+        rateStr,
+        survivalStr,
+        expLoss,
+        r.created_at || "",
+      ];
+    });
     downloadCsv(headers, rows, `stress_audit_history_${Date.now()}.csv`);
     toast.success("Downloaded audit history CSV");
   };
@@ -139,63 +147,95 @@ export default function HistoryPage() {
                   </td>
                 </tr>
               ) : (
-                runs.map((run) => (
-                  <tr
-                    key={run.id}
-                    onClick={() => setSelectedRun(run)}
-                    className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
-                  >
-                    <td className="p-4 font-semibold text-slate-900 dark:text-white font-sans">{run.scenario_name}</td>
+                runs.map((run) => {
+                  const unempShock = run.params?.unemployment_shock ?? run.results?.breaking_shock?.unemployment_shock;
+                  const rateShock = run.params?.rate_shock ?? run.results?.breaking_shock?.rate_shock;
+                  const survivedPct = run.results?.survived_pct;
+                  const summary = run.results?.summary;
+                  const status = run.results?.mitigation_status;
 
-                    <td className="p-4 text-slate-300">
-                      Unemp: +{(run.params.unemployment_shock * 100).toFixed(1)} pp | Rate: {(run.params.rate_shock * 100).toFixed(1)} pp
-                    </td>
+                  return (
+                    <tr
+                      key={run.id}
+                      onClick={() => setSelectedRun(run)}
+                      className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                    >
+                      <td className="p-4 font-semibold text-slate-900 dark:text-white font-sans">{run.scenario_name}</td>
 
-                    <td className="p-4 text-center">
-                      <Badge
-                        variant={
-                          run.results.survived_pct >= 95
-                            ? "success"
-                            : run.results.survived_pct >= 80
-                            ? "warning"
-                            : "danger"
-                        }
-                      >
-                        {run.results.survived_pct.toFixed(1)}%
-                      </Badge>
-                    </td>
+                      <td className="p-4 text-slate-300">
+                        {unempShock !== undefined && rateShock !== undefined ? (
+                          <>
+                            Unemp: +{(unempShock * 100).toFixed(1)} pp | Rate: {(rateShock * 100).toFixed(1)} pp
+                          </>
+                        ) : (
+                          <span className="text-slate-400">Reverse Stress Metric</span>
+                        )}
+                      </td>
 
-                    <td className="p-4 text-right text-indigo-300 font-bold">
-                      {formatCurrency(run.results.summary.expected_loss, true)}
-                    </td>
+                      <td className="p-4 text-center">
+                        {survivedPct !== undefined ? (
+                          <Badge
+                            variant={
+                              survivedPct >= 95
+                                ? "success"
+                                : survivedPct >= 80
+                                ? "warning"
+                                : "danger"
+                            }
+                          >
+                            {survivedPct.toFixed(1)}%
+                          </Badge>
+                        ) : status ? (
+                          <Badge
+                            variant={
+                              status === "RECOVERED"
+                                ? "success"
+                                : status === "PARTIALLY_MITIGATED"
+                                ? "warning"
+                                : "danger"
+                            }
+                          >
+                            {status}
+                          </Badge>
+                        ) : (
+                          <Badge variant="neutral">N/A</Badge>
+                        )}
+                      </td>
 
-                    <td className="p-4 text-slate-400 font-sans">{formatDate(run.created_at)}</td>
+                      <td className="p-4 text-right text-indigo-300 font-bold">
+                        {summary?.expected_loss !== undefined
+                          ? formatCurrency(summary.expected_loss, true)
+                          : "N/A"}
+                      </td>
 
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedRun(run);
-                          }}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
+                      <td className="p-4 text-slate-400 font-sans">{formatDate(run.created_at)}</td>
 
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
-                          onClick={(e) => handleDelete(run.id, e)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRun(run);
+                            }}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            onClick={(e) => handleDelete(run.id, e)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -214,33 +254,54 @@ export default function HistoryPage() {
               <div>
                 <span className="text-slate-500 text-[10px] block uppercase">Unemployment Shock</span>
                 <span className="text-rose-400 font-bold text-sm">
-                  +{(selectedRun.params.unemployment_shock * 100).toFixed(1)} pp
+                  {selectedRun.params?.unemployment_shock !== undefined
+                    ? `+${(selectedRun.params.unemployment_shock * 100).toFixed(1)} pp`
+                    : selectedRun.results?.breaking_shock?.unemployment_shock !== undefined
+                    ? `+${(selectedRun.results.breaking_shock.unemployment_shock * 100).toFixed(1)} pp (Breaking)`
+                    : "N/A"}
                 </span>
               </div>
 
               <div>
                 <span className="text-slate-500 text-[10px] block uppercase">Interest Rate Shock</span>
                 <span className="text-amber-400 font-bold text-sm">
-                  {(selectedRun.params.rate_shock * 100).toFixed(1)} pp
+                  {selectedRun.params?.rate_shock !== undefined
+                    ? `${(selectedRun.params.rate_shock * 100).toFixed(1)} pp`
+                    : selectedRun.results?.breaking_shock?.rate_shock !== undefined
+                    ? `${(selectedRun.results.breaking_shock.rate_shock * 100).toFixed(1)} pp (Breaking)`
+                    : "N/A"}
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-3 bg-slate-950/60 rounded-xl border border-slate-800 font-mono">
-              <div>
-                <span className="text-slate-500 text-[10px] block uppercase">Expected Loss</span>
-                <span className="text-indigo-300 font-bold text-sm">
-                  {formatCurrency(selectedRun.results.summary.expected_loss)}
-                </span>
-              </div>
+            {selectedRun.results?.summary && (
+              <div className="grid grid-cols-2 gap-4 p-3 bg-slate-950/60 rounded-xl border border-slate-800 font-mono">
+                <div>
+                  <span className="text-slate-500 text-[10px] block uppercase">Expected Loss</span>
+                  <span className="text-indigo-300 font-bold text-sm">
+                    {formatCurrency(selectedRun.results.summary.expected_loss)}
+                  </span>
+                </div>
 
-              <div>
-                <span className="text-slate-500 text-[10px] block uppercase">Worst Case Loss</span>
-                <span className="text-rose-400 font-bold text-sm">
-                  {formatCurrency(selectedRun.results.summary.worst_case_loss)}
-                </span>
+                <div>
+                  <span className="text-slate-500 text-[10px] block uppercase">Worst Case Loss</span>
+                  <span className="text-rose-400 font-bold text-sm">
+                    {formatCurrency(selectedRun.results.summary.worst_case_loss)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
+
+            {selectedRun.results?.mitigation_status && (
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 font-mono space-y-1">
+                <div className="text-slate-400 text-[11px]">
+                  Target Metric: <span className="text-white font-bold">{selectedRun.results.target_metric}</span> ({selectedRun.results.target_value})
+                </div>
+                <div className="text-slate-400 text-[11px]">
+                  Mitigation Status: <span className="text-emerald-400 font-bold">{selectedRun.results.mitigation_status}</span>
+                </div>
+              </div>
+            )}
 
             <div className="pt-2 text-[11px] text-slate-400">
               Run ID: <code className="text-slate-200">{selectedRun.id}</code>

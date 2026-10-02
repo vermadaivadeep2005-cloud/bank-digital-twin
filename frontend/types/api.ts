@@ -192,10 +192,15 @@ export interface ReverseStressResponse {
 export interface StressRunOut {
   id: string;
   scenario_name: string;
-  params: StressTestPayload;
-  results: {
-    summary: StressSummary;
-    survived_pct: number;
+  params?: Record<string, any>;
+  results?: {
+    summary?: StressSummary;
+    survived_pct?: number;
+    target_metric?: string;
+    target_value?: number;
+    breaking_shock?: { unemployment_shock?: number; rate_shock?: number };
+    mitigation_status?: string;
+    [key: string]: any;
   };
   created_at: string;
 }
