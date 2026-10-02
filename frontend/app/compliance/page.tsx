@@ -139,6 +139,12 @@ export default function CompliancePage() {
           bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
           icon: ShieldAlert,
         };
+      case "frs102":
+        return {
+          label: "FRS 102 UK Standard",
+          bg: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+          icon: Scale,
+        };
       default:
         return {
           label: fwId.toUpperCase(),
@@ -168,8 +174,8 @@ export default function CompliancePage() {
               </span>
             </div>
             <p className="text-slate-400 text-sm mt-1 max-w-2xl">
-              Real-time balance sheet, liquidity, cyber security, and AML audit matrix across{" "}
-              <strong className="text-orange-400 font-semibold">Local (RBI)</strong> and{" "}
+              Real-time balance sheet, liquidity, cyber security, and credit risk audit matrix across{" "}
+              <strong className="text-orange-400 font-semibold">Local (RBI, FRS 102 UK)</strong> and{" "}
               <strong className="text-cyan-400 font-semibold">International (Basel III/IV, SWIFT, FATF)</strong> standards.
             </p>
           </div>
@@ -367,6 +373,17 @@ export default function CompliancePage() {
             >
               <ShieldAlert className="h-3.5 w-3.5 text-emerald-400" />
               <span>FATF Standards</span>
+            </button>
+            <button
+              onClick={() => setSelectedFramework("frs102")}
+              className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                selectedFramework === "frs102"
+                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/40 font-bold"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              }`}
+            >
+              <Scale className="h-3.5 w-3.5 text-purple-400" />
+              <span>FRS 102 UK</span>
             </button>
           </div>
 

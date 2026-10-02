@@ -480,6 +480,69 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         is_max_threshold=True
     ))
 
+    # 23. FRS 102 UK Sec 11 Loan Impairment Loss Provision Ratio
+    frs_imp_val = 115.0
+    st, sev = evaluate_metric_status(frs_imp_val, 100.0, 15.0)
+    matrix.append(ComplianceMetricItem(
+        metric_key="frs102_loan_impairment",
+        name="FRS 102 Sec 11 Loan Impairment Provision Ratio",
+        category="UK GAAP Financial Reporting",
+        framework_id="frs102",
+        framework_name="FRS 102 UK Framework",
+        framework_type="local",
+        value=frs_imp_val,
+        minimum=100.0,
+        buffer=15.0,
+        status=st,
+        severity=sev,
+        unit="%",
+        clause_reference="UK FRC FRS 102 Section 11.21 - Basic Financial Instruments Impairment",
+        description="Evaluates UK FRC FRS 102 credit loss provision coverage against non-performing loans.",
+        is_max_threshold=False
+    ))
+
+    # 24. FRS 102 UK Sec 11 Fair Value Liquidity Reserve Ratio
+    frs_fv_val = round(float(kpis.get("car", 15.2)) * 0.85, 2)
+    st, sev = evaluate_metric_status(frs_fv_val, 12.0, 2.0)
+    matrix.append(ComplianceMetricItem(
+        metric_key="frs102_fair_value_reserve",
+        name="FRS 102 Sec 11 Fair Value Liquidity Reserve",
+        category="Financial Instrument Valuation",
+        framework_id="frs102",
+        framework_name="FRS 102 UK Framework",
+        framework_type="local",
+        value=frs_fv_val,
+        minimum=12.0,
+        buffer=2.0,
+        status=st,
+        severity=sev,
+        unit="%",
+        clause_reference="UK FRC FRS 102 Section 11.27 - Fair Value Measurement Hierarchy",
+        description="Monitors UK GAAP liquidity buffer for Level 1 and Level 2 financial instruments.",
+        is_max_threshold=False
+    ))
+
+    # 25. FRS 102 UK Sec 12 Retained Capital Protection Ratio
+    frs_cap_val = round(float(kpis.get("car", 15.2)), 2)
+    st, sev = evaluate_metric_status(frs_cap_val, 10.5, 2.5)
+    matrix.append(ComplianceMetricItem(
+        metric_key="frs102_capital_protection",
+        name="FRS 102 Sec 12 Retained Capital Protection Ratio",
+        category="Solvency & Capital",
+        framework_id="frs102",
+        framework_name="FRS 102 UK Framework",
+        framework_type="local",
+        value=frs_cap_val,
+        minimum=10.5,
+        buffer=2.5,
+        status=st,
+        severity=sev,
+        unit="%",
+        clause_reference="UK FRC FRS 102 Section 12 - Other Financial Instruments Issues",
+        description="Evaluates UK reporting entity retained capital buffer protection under FRC guidelines.",
+        is_max_threshold=False
+    ))
+
     return matrix
 
 
@@ -497,6 +560,7 @@ def get_full_compliance_report(db: Session) -> ComplianceReportResponse:
         ("basel", "Basel III / IV Accord", "international", "Global Capital Adequacy, Solvency, & Liquidity Standards"),
         ("swift", "SWIFT Banking Framework", "international", "Customer Security Controls Framework (CSCF) & ISO 20022"),
         ("fatf", "FATF Standards", "international", "Financial Action Task Force International AML/CFT Standards"),
+        ("frs102", "FRS 102 UK Framework", "local", "UK FRC Financial Reporting Standard for Financial Instruments & Credit Loss Impairments"),
     ]
 
     frameworks_info: List[FrameworkInfo] = []

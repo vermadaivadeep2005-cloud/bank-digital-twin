@@ -146,7 +146,7 @@ export default function OverviewPage() {
       ],
       tables: [
         {
-          title: "Multi-Framework Regulatory Compliance Matrix (RBI, Basel III/IV, SWIFT, FATF)",
+          title: "Multi-Framework Regulatory Compliance Matrix (RBI, Basel III/IV, SWIFT, FATF, FRS 102 UK)",
           headers: ["Regulatory Standard", "Framework", "Minimum Target", "Current Position", "Compliance Status"],
           rows: [
             ["Total Capital Adequacy Ratio (CAR)", "Basel III Accord", ">= 8.0%", `${kpis.car.toFixed(2)}%`, kpis.car >= 8 ? "PASSED" : "CRITICAL"],
@@ -157,6 +157,9 @@ export default function OverviewPage() {
             ["ISO 20022 MX Migration Rate", "SWIFT Banking", ">= 95.0%", "96.80%", "PASSED"],
             ["Customer Due Diligence (CDD/KYC)", "FATF Standards", ">= 98.0%", "98.90%", "PASSED"],
             ["Suspicious Transaction Filing (STR)", "FATF Standards", ">= 99.0%", "99.40%", "PASSED"],
+            ["Sec 11 Loan Impairment Provision Ratio", "FRS 102 UK Framework", ">= 2.5%", "3.40%", "PASSED"],
+            ["Sec 11 Fair Value Liquidity Reserve Ratio", "FRS 102 UK Framework", ">= 12.0%", "14.20%", "PASSED"],
+            ["Sec 12 Retained Capital Protection Ratio", "FRS 102 UK Framework", ">= 10.0%", "12.80%", "PASSED"],
           ],
         },
       ],
