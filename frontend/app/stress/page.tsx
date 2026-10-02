@@ -363,7 +363,7 @@ function StressContent() {
                       </div>
 
                       <div className="p-3 rounded-xl bg-slate-950/60 border border-purple-900/40 space-y-1">
-                        <span className="text-[10px] text-purple-400 uppercase">Student's t Fat-Tail (P95)</span>
+                        <span className="text-[10px] text-purple-400 uppercase">Student&apos;s t Fat-Tail (P95)</span>
                         <div className="text-base font-bold text-purple-300">
                           {formatCurrency(result.tail_risk_comparison.student_t_p95_loss, true)}
                         </div>
@@ -565,7 +565,7 @@ function StressContent() {
                       reverseCopula === "student_t" ? "bg-rose-600 text-white font-bold" : "text-slate-400"
                     }`}
                   >
-                    Student's t
+                    Student&apos;s t
                   </button>
                 </div>
               </div>

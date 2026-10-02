@@ -4,10 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Scale,
   ShieldCheck,
-  AlertTriangle,
   Printer,
   Activity,
-  CheckCircle2,
   Globe,
   Building2,
   Lock,
@@ -17,8 +15,6 @@ import {
   RotateCcw,
   Info,
   Layers,
-  ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import {
   getComplianceReport,

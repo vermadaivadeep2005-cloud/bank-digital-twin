@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   TrendingUp,
   RefreshCw,
-  PieChart as PieIcon,
-  Activity,
-  Layers,
-  BarChart3,
-  ShieldCheck,
-  AlertTriangle
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -22,7 +16,7 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
 } from "recharts";
 import { getMetricForecast } from "@/lib/api";
 import CroMathBreakdown from "@/components/common/CroMathBreakdown";
@@ -36,17 +30,17 @@ export default function ForecastsPage() {
   const [forecastData, setForecastData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadForecast = () => {
+  const loadForecast = useCallback(() => {
     setLoading(true);
     getMetricForecast(metric, horizon)
       .then((data) => setForecastData(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [metric, horizon]);
 
   useEffect(() => {
     loadForecast();
-  }, [metric, horizon]);
+  }, [loadForecast]);
 
   // Compute KPI metrics from forecast output
   const kpis = useMemo(() => {

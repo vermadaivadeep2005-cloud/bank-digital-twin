@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   ShieldAlert,
   RefreshCw,
@@ -121,7 +121,7 @@ export default function FraudPage() {
   const [activeTab, setActiveTab] = useState<"all" | "critical" | "high" | "medium">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getFraudAlerts();
@@ -153,11 +153,11 @@ export default function FraudPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const handleTrain = async () => {
     setTraining(true);

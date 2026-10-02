@@ -27,7 +27,6 @@ interface SensitivityItem {
 }
 
 export default function WhatIfPage() {
-  const router = useRouter();
   const [unemployment, setUnemployment] = useState(5.0);
   const [rate, setRate] = useState(2.0);
   const [propertyDrop, setPropertyDrop] = useState(15.0);

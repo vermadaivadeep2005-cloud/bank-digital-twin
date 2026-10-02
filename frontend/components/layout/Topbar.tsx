@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { LogOut, LogIn } from "lucide-react";
+import { LogOut, LogIn, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -23,7 +23,11 @@ const routeNames: Record<string, string> = {
   "/history": "Audit History & Saved Runs",
 };
 
-export default function Topbar() {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export default function Topbar({ onMenuClick }: TopbarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
@@ -32,12 +36,19 @@ export default function Topbar() {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-30 transition-colors">
+      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 transition-colors">
         {/* Page Title & Breadcrumbs */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Open Navigation Menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <BankLogo size="sm" />
-          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700" />
-          <h1 className="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
+          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block" />
+          <h1 className="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono truncate max-w-[150px] sm:max-w-none">
             {pageTitle}
           </h1>
         </div>

@@ -30,13 +30,17 @@ export function ThreeDPieChart({ data, title, subtitle }: ThreeDPieChartProps) {
   const sweepSum = rawSweeps.reduce((a, b) => a + b, 0) || 360;
   const normalizedSweeps = rawSweeps.map((sw) => (sw / sweepSum) * 360);
 
-  let currentAngle = 0;
+  const startAngles: number[] = [];
+  let accum = 0;
+  for (let i = 0; i < normalizedSweeps.length; i++) {
+    startAngles.push(accum);
+    accum += normalizedSweeps[i];
+  }
 
   const slices = data.map((item, idx) => {
-    const startAngle = currentAngle;
+    const startAngle = startAngles[idx];
     const sliceAngle = normalizedSweeps[idx];
     const endAngle = startAngle + sliceAngle;
-    currentAngle = endAngle;
 
     // Mid angle for callout pins & 3D offset
     const midAngle = startAngle + sliceAngle / 2;

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Zap,
@@ -14,6 +14,7 @@ import {
   Scale,
   ShieldAlert,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankLogo } from "@/components/common/BankLogo";
@@ -30,25 +31,33 @@ const items = [
   { href: "/history", label: "Audit History", icon: History },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  setMobileOpen?: (open: boolean) => void;
+}
+
+export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = React.useState(false);
 
-  return (
-    <motion.aside
-      animate={{ width: collapsed ? 68 : 256 }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="sticky top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between z-40 select-none transition-colors overflow-hidden"
-    >
+  // Close mobile drawer on route change
+  React.useEffect(() => {
+    if (setMobileOpen) {
+      setMobileOpen(false);
+    }
+  }, [pathname, setMobileOpen]);
+
+  const navContent = (isMobile = false) => (
+    <div className="flex flex-col justify-between h-full">
       <div>
         {/* Top Header & Brand */}
         <div
           className={cn(
             "h-16 flex items-center border-b border-slate-200 dark:border-slate-800 transition-all px-4",
-            collapsed ? "justify-center px-0" : "justify-between"
+            !isMobile && collapsed ? "justify-center px-0" : "justify-between"
           )}
         >
-          {collapsed ? (
+          {!isMobile && collapsed ? (
             <button
               onClick={() => setCollapsed(false)}
               className="cursor-pointer"
@@ -62,19 +71,28 @@ export default function Sidebar() {
                 <BankLogo size="md" withText />
               </Link>
 
-              <button
-                onClick={() => setCollapsed(true)}
-                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Collapse Sidebar"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              {isMobile ? (
+                <button
+                  onClick={() => setMobileOpen?.(false)}
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setCollapsed(true)}
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Collapse Sidebar"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
             </>
           )}
         </div>
 
         {/* Navigation Items */}
-        <nav className={cn("mt-3 space-y-1.5", collapsed ? "px-2" : "px-3")}>
+        <nav className={cn("mt-3 space-y-1.5", !isMobile && collapsed ? "px-2" : "px-3")}>
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -83,14 +101,14 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                title={collapsed ? item.label : undefined}
+                title={!isMobile && collapsed ? item.label : undefined}
                 className={cn(
                   "flex items-center rounded-xl text-xs font-medium transition-all group overflow-hidden whitespace-nowrap",
-                  collapsed
+                  !isMobile && collapsed
                     ? "justify-center w-10 h-10 mx-auto"
                     : "gap-3 px-3 py-2.5",
                   isActive
-                    ? collapsed
+                    ? !isMobile && collapsed
                       ? "bg-indigo-600 text-white shadow-sm"
                       : "text-indigo-600 dark:text-white bg-indigo-500/10 dark:bg-indigo-600/20 font-semibold border-l-2 border-indigo-600 dark:border-indigo-400"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/50"
@@ -100,13 +118,13 @@ export default function Sidebar() {
                   className={cn(
                     "w-4 h-4 shrink-0 transition-colors",
                     isActive
-                      ? collapsed
+                      ? !isMobile && collapsed
                         ? "text-white"
                         : "text-indigo-600 dark:text-indigo-400"
                       : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200"
                   )}
                 />
-                {!collapsed && <span>{item.label}</span>}
+                {(isMobile || !collapsed) && <span>{item.label}</span>}
               </Link>
             );
           })}
@@ -115,7 +133,7 @@ export default function Sidebar() {
 
       {/* Footer System Status */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800">
-        {collapsed ? (
+        {!isMobile && collapsed ? (
           <div
             className="w-10 h-10 mx-auto rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-emerald-500"
             title="Monte Carlo Engine Active"
@@ -138,6 +156,47 @@ export default function Sidebar() {
           </div>
         )}
       </div>
-    </motion.aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sticky Sidebar */}
+      <motion.aside
+        animate={{ width: collapsed ? 68 : 256 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className="hidden md:flex sticky top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col justify-between z-40 select-none transition-colors overflow-hidden shrink-0"
+      >
+        {navContent(false)}
+      </motion.aside>
+
+      {/* Mobile Drawer Overlay & Sidebar */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen?.(false)}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 md:hidden"
+            />
+
+            {/* Slide-over Drawer */}
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed inset-y-0 left-0 w-72 bg-slate-900 border-r border-slate-800 z-50 md:hidden flex flex-col justify-between shadow-2xl"
+            >
+              {navContent(true)}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
+

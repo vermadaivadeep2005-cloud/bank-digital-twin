@@ -51,7 +51,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       degrees_of_freedom: degreesOfFreedom,
       n_sims: preset.sims,
       horizon_months: preset.horizon,
-      seed: Math.floor(Math.random() * 100000),
+      seed: Date.now() % 100000,
     });
   };
 
