@@ -1,0 +1,29 @@
+services:
+  # 1. Backend FastAPI API Web Service
+  - type: web
+    name: bank-digital-twin-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: backend
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
+  # 2. Frontend Next.js Web Service
+  - type: web
+    name: bank-digital-twin-frontend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: bank-digital-twin-backend
+          property: url
