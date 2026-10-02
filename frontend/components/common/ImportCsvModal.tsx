@@ -148,6 +148,18 @@ export function ImportCsvModal({ isOpen, onClose, onSuccess }: ImportCsvModalPro
               Supports single or multi-currency customer books (<span className="text-cyan-300 font-mono">USD, INR, EUR, GBP</span>).
               The engine automatically normalizes multi-currency figures into baseline risk metrics while preserving customer data.
             </p>
+            <div className="pt-1 text-[11px] text-amber-300/90 font-mono flex items-center gap-1.5">
+              <span>🏆 Kaggle Benchmark Compatible:</span>
+              <a
+                href="https://www.kaggle.com/datasets/wordsforthewise/lending-club"
+                target="_blank"
+                rel="noreferrer"
+                className="text-cyan-400 hover:text-cyan-300 underline font-sans"
+              >
+                Kaggle LendingClub Loan Data
+              </a>
+              <span>(auto-maps loan_amnt, annual_inc, int_rate, etc.)</span>
+            </div>
           </div>
         </div>
 

@@ -182,15 +182,20 @@ def import_csv_bank_data(db: Session, csv_content: str):
         curr_code = clean_row.get("currency", "USD").upper().strip()
         curr_rate = CURRENCY_TO_USD_RATES.get(curr_code, 1.0)
         
-        name = clean_row.get("name") or clean_row.get("customer_name") or fake.name()
+        name = clean_row.get("name") or clean_row.get("customer_name") or clean_row.get("member_id") or fake.name()
+
+        # Credit Score (support Kaggle fico_range_low / fico_range_high / score)
+        cs_raw = clean_row.get("credit_score") or clean_row.get("fico_range_low") or clean_row.get("score") or "700"
         try:
-            cs = int(float(clean_row.get("credit_score", 700)))
+            cs = int(float(cs_raw))
         except (ValueError, TypeError):
             cs = 700
         cs = max(300, min(850, cs))
 
+        # Income (support Kaggle annual_inc / monthlyincome)
+        inc_raw = clean_row.get("income") or clean_row.get("annual_inc") or clean_row.get("monthlyincome") or "75000"
         try:
-            raw_income = float(clean_row.get("income", 75000))
+            raw_income = float(inc_raw)
         except (ValueError, TypeError):
             raw_income = 75000.0
         income = raw_income * curr_rate
@@ -200,11 +205,19 @@ def import_csv_bank_data(db: Session, csv_content: str):
         except (ValueError, TypeError):
             age = 40
 
-        emp = clean_row.get("employment_status", "employed").lower()
-        if emp not in ["employed", "self-employed", "unemployed", "retired"]:
+        # Employment (support Kaggle emp_length / job)
+        emp_raw = (clean_row.get("employment_status") or clean_row.get("emp_length") or clean_row.get("job") or "employed").lower()
+        if "self" in emp_raw:
+            emp = "self-employed"
+        elif "retir" in emp_raw:
+            emp = "retired"
+        elif "unemp" in emp_raw or "none" in emp_raw:
+            emp = "unemployed"
+        else:
             emp = "employed"
 
-        region = clean_row.get("region") or clean_row.get("state") or fake.state()
+        # Region (support Kaggle addr_state / state)
+        region = clean_row.get("region") or clean_row.get("state") or clean_row.get("addr_state") or fake.state()
 
         c = Customer(
             name=name,
@@ -220,34 +233,51 @@ def import_csv_bank_data(db: Session, csv_content: str):
         acc_bal = max(1000.0, income * 0.15)
         accounts.append(Account(customer=c, account_type="checking", balance=acc_bal))
 
-        # Parse loan details
+        # Parse loan details (support Kaggle loan_amnt / funded_amnt / out_prncp / int_rate)
+        prin_raw = clean_row.get("principal") or clean_row.get("loan_amnt") or clean_row.get("funded_amnt") or "250000"
         try:
-            raw_principal = float(clean_row.get("principal", 250000))
+            raw_principal = float(prin_raw)
         except (ValueError, TypeError):
             raw_principal = 250000.0
         principal = raw_principal * curr_rate
 
+        out_raw = clean_row.get("outstanding") or clean_row.get("out_prncp") or clean_row.get("total_rec_prncp")
         try:
-            raw_outstanding = float(clean_row.get("outstanding", raw_principal * 0.75))
+            raw_outstanding = float(out_raw) if out_raw else raw_principal * 0.75
         except (ValueError, TypeError):
             raw_outstanding = raw_principal * 0.75
         outstanding = raw_outstanding * curr_rate
 
+        rate_raw = clean_row.get("interest_rate") or clean_row.get("int_rate") or "0.055"
         try:
-            rate_val = float(clean_row.get("interest_rate", 0.055))
+            # Handle percentage string e.g. "11.5%" or 11.5 from Kaggle
+            if isinstance(rate_raw, str):
+                rate_raw = rate_raw.replace("%", "").strip()
+            rate_val = float(rate_raw)
             if rate_val > 1.0:
                 rate_val = rate_val / 100.0
         except (ValueError, TypeError):
             rate_val = 0.055
 
-        loan_type = clean_row.get("loan_type", "mortgage").lower()
-        if loan_type not in ["mortgage", "personal", "auto", "business"]:
+        # Loan Type (support Kaggle purpose / title)
+        lt_raw = (clean_row.get("loan_type") or clean_row.get("purpose") or clean_row.get("title") or "mortgage").lower()
+        if "auto text" in lt_raw or "car" in lt_raw:
+            loan_type = "auto"
+        elif "biz" in lt_raw or "busin" in lt_raw or "small_business" in lt_raw:
+            loan_type = "business"
+        elif "person" in lt_raw or "credit_card" in lt_raw or "debt" in lt_raw:
+            loan_type = "personal"
+        else:
             loan_type = "mortgage"
 
-        # Determine loan status (use explicit status if provided, or infer from credit score)
-        raw_status = clean_row.get("status", "").lower()
-        if raw_status in ["current", "delinquent", "default"]:
-            status = raw_status
+        # Determine loan status (support Kaggle loan_status)
+        raw_status = (clean_row.get("status") or clean_row.get("loan_status") or "").lower()
+        if "paid" in raw_status or "current" in raw_status:
+            status = "current"
+        elif "late" in raw_status or "grace" in raw_status or "delinquent" in raw_status:
+            status = "delinquent"
+        elif "charge" in raw_status or "default" in raw_status:
+            status = "default"
         else:
             if cs < 610:
                 status = "default"
