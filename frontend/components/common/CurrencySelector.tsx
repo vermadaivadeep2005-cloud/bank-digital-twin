@@ -9,9 +9,9 @@ export function CurrencySelector() {
   const { currency, setCurrency, currencyConfig, openFxModal } = useCurrency();
 
   return (
-    <div className="relative inline-flex items-center gap-2">
-      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm transition hover:border-slate-400 dark:hover:border-slate-700">
-        <span className="text-sm leading-none">{currencyConfig.flag}</span>
+    <div className="relative inline-flex items-center gap-1 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-950/90 border border-slate-300 dark:border-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm transition hover:border-slate-400 dark:hover:border-slate-700 shrink-0">
+        <span className="text-xs sm:text-sm leading-none shrink-0">{currencyConfig.flag}</span>
         <select
           value={currency}
           onChange={(e) => {
@@ -21,7 +21,7 @@ export function CurrencySelector() {
               window.location.reload();
             }
           }}
-          className="bg-transparent text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none cursor-pointer pr-1"
+          className="bg-transparent text-[11px] sm:text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:outline-none cursor-pointer pr-0.5"
         >
           {Object.values(CURRENCIES).map((c) => (
             <option key={c.code} value={c.code} className="bg-slate-900 text-slate-100 font-sans py-1">
@@ -29,18 +29,18 @@ export function CurrencySelector() {
             </option>
           ))}
         </select>
-        <span className="text-[10px] font-mono text-slate-400 border-l border-slate-700/60 pl-1.5">
+        <span className="text-[10px] font-mono text-slate-400 border-l border-slate-700/60 pl-1 hidden sm:inline shrink-0">
           {currencyConfig.symbol}
         </span>
       </div>
 
       <button
         onClick={openFxModal}
-        className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/50 text-[11px] font-mono text-cyan-400 transition shadow-sm"
+        className="flex items-center space-x-1 px-2 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/50 text-[11px] font-mono text-cyan-400 transition shadow-sm shrink-0 cursor-pointer"
         title="Open Live & Historical FX Converter & Fee Audit"
       >
-        <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400" />
-        <span className="hidden sm:inline">FX Rates & Fees</span>
+        <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <span className="hidden sm:inline">FX Rates</span>
       </button>
     </div>
   );
