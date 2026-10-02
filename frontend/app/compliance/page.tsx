@@ -118,36 +118,42 @@ export default function CompliancePage() {
       case "rbi":
         return {
           label: "RBI Local Regulatory",
+          categoryTag: "🇮🇳 Local (RBI)",
           bg: "bg-orange-500/10 text-orange-400 border-orange-500/30",
           icon: Building2,
         };
       case "basel":
         return {
           label: "Basel III/IV Accord",
+          categoryTag: "🌐 International",
           bg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
           icon: Globe,
         };
       case "swift":
         return {
           label: "SWIFT Banking",
+          categoryTag: "🌐 International",
           bg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
           icon: Lock,
         };
       case "fatf":
         return {
           label: "FATF AML/CFT",
+          categoryTag: "🌐 International",
           bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
           icon: ShieldAlert,
         };
       case "frs102":
         return {
           label: "FRS 102 UK Standard",
+          categoryTag: "🇬🇧 UK FRC Standard",
           bg: "bg-purple-500/10 text-purple-400 border-purple-500/30",
           icon: Scale,
         };
       default:
         return {
           label: fwId.toUpperCase(),
+          categoryTag: "Local Regulatory",
           bg: "bg-slate-800 text-slate-300 border-slate-700",
           icon: Scale,
         };
@@ -203,7 +209,7 @@ export default function CompliancePage() {
 
       {/* Dynamic Framework Summary Cards (Clickable quick filters) */}
       {report && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {report.frameworks.map((fw: FrameworkInfo) => {
             const badge = getFrameworkBadge(fw.id);
             const IconComp = badge.icon;
@@ -227,7 +233,7 @@ export default function CompliancePage() {
                     </div>
                     <div>
                       <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider block">
-                        {fw.type === "local" ? "🇮🇳 Local Regulatory" : "🌐 International"}
+                        {badge.categoryTag}
                       </span>
                       <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition">
                         {fw.name}

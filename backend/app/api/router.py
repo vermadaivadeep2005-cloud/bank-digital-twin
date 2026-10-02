@@ -15,6 +15,7 @@ from app.api.v1 import (
     forecasts,
     what_if,
     compliance,
+    fx,
 )
 
 api_router = APIRouter()
@@ -34,3 +35,4 @@ api_router.include_router(fraud.router)
 api_router.include_router(forecasts.router)
 api_router.include_router(what_if.router)
 api_router.include_router(compliance.router)
+api_router.include_router(fx.router)

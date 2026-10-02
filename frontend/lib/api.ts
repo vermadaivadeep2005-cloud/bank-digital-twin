@@ -347,3 +347,48 @@ export const getHealth = async () => {
     return (await API.get("/")).data;
   }
 };
+
+// Forex & Historical Rate APIs
+export interface FxRatesResponse {
+  provider: string;
+  base: string;
+  date: string;
+  rates: Record<string, number>;
+  is_live: boolean;
+}
+
+export interface FxConversionResult {
+  from_currency: string;
+  to_currency: string;
+  original_amount: number;
+  mid_market_rate: number;
+  conversion_fee_percent: number;
+  gross_converted_amount: number;
+  conversion_fee_amount: number;
+  net_converted_amount: number;
+  effective_exchange_rate: number;
+}
+
+export interface FxConvertResponse {
+  status: string;
+  provider: string;
+  date_used: string;
+  is_historical: boolean;
+  conversion: FxConversionResult;
+}
+
+export const getFxRates = async (base = "USD", date?: string): Promise<FxRatesResponse> => {
+  const params: Record<string, string> = { base };
+  if (date) params.date = date;
+  return (await API.get("/api/v1/fx/rates", { params })).data;
+};
+
+export const convertFxAmount = async (data: {
+  amount: number;
+  from_currency: string;
+  to_currency: string;
+  date?: string;
+  fee_percent?: number;
+}): Promise<FxConvertResponse> => {
+  return (await API.post("/api/v1/fx/convert", data)).data;
+};
