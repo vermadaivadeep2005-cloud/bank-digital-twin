@@ -28,20 +28,24 @@ def compute_kpis(db: Session):
     # Capital & Risk Weighted Assets (RWA)
     tot_out = float(total_outstanding)
     if tot_out <= 0:
-        tot_out = 150_000_000.0  # Fallback baseline ($150M)
+        capital = 0.0
+        rwa = 0.0
+        car = 0.0
+        nim = 0.0
+        roa = 0.0
+    else:
+        # Basel III Tier 1 Capital baseline: ~10.5% of total outstanding loans
+        capital = tot_out * 0.105
+        rwa = tot_out * 0.70  # Avg 70% risk weight under Basel standardized approach
+        car = (capital / rwa * 100.0) if rwa > 0 else 0.0
 
-    # Basel III Tier 1 Capital baseline: ~10.5% of total outstanding loans
-    capital = tot_out * 0.105
-    rwa = tot_out * 0.70  # Avg 70% risk weight under Basel standardized approach
-    car = (capital / rwa * 100.0) if rwa > 0 else 15.0  # 15.0% CAR
+        # Net Interest Margin (NIM)
+        avg_rate = db.query(func.coalesce(func.avg(Loan.interest_rate), 0)).scalar() or 0.05
+        nim = float(avg_rate) * 100.0 * 0.60
 
-    # Net Interest Margin (NIM)
-    avg_rate = db.query(func.coalesce(func.avg(Loan.interest_rate), 0)).scalar() or 0.05
-    nim = float(avg_rate) * 100.0 * 0.60
-
-    # Return on Assets (ROA)
-    net_income = tot_out * float(avg_rate) * 0.15 - npl * 0.35
-    roa = (net_income / (capital + tot_out)) * 100.0 if (capital + tot_out) > 0 else 1.8
+        # Return on Assets (ROA)
+        net_income = tot_out * float(avg_rate) * 0.15 - npl * 0.35
+        roa = (net_income / (capital + tot_out)) * 100.0 if (capital + tot_out) > 0 else 0.0
 
     return {
         "total_customers": int(total_customers),
@@ -54,6 +58,7 @@ def compute_kpis(db: Session):
         "roa": round(float(roa), 2),
         "nim": round(float(nim), 2),
     }
+
 
 
 def compute_kpis_with_trends(db: Session):

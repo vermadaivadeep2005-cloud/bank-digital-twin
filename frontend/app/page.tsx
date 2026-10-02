@@ -20,6 +20,7 @@ import {
   Sliders,
   FileText,
   Upload,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { KpiCard } from "@/components/charts/KpiCard";
@@ -238,6 +239,18 @@ export default function OverviewPage() {
           </div>
         </div>
 
+        {kpis && kpis.total_loans === 0 && (
+          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>No portfolio data found in database. Card metrics will show <strong>N/A</strong> or <strong>₹0</strong> until data is generated or imported.</span>
+            </div>
+            <Button size="sm" onClick={handleGenerate} loading={generating} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs h-7 px-3 rounded-lg shadow-sm">
+              Generate Bank Data
+            </Button>
+          </div>
+        )}
+
         {loading || !kpis ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -248,32 +261,32 @@ export default function OverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
               label="Outstanding Portfolio"
-              value={formatCurrency(kpis.total_outstanding, true)}
-              delta="+4.2%"
+              value={kpis.total_loans === 0 ? "₹0" : formatCurrency(kpis.total_outstanding, true)}
+              delta={kpis.total_loans === 0 ? undefined : "+4.2%"}
               isPositive={true}
               hint="Total aggregate outstanding loan principal across all active accounts"
               icon={DollarSign}
             />
             <KpiCard
               label="Capital Adequacy (CAR)"
-              value={formatPercent(kpis.car)}
-              delta="+0.8%"
+              value={kpis.total_loans === 0 ? "N/A" : formatPercent(kpis.car)}
+              delta={kpis.total_loans === 0 ? undefined : "+0.8%"}
               isPositive={kpis.car >= 8.0}
               hint="Capital Adequacy Ratio (Tier 1 Capital / Risk Weighted Assets). Regulatory minimum: 8.0%"
               icon={ShieldCheck}
             />
             <KpiCard
               label="NPL Default Ratio"
-              value={formatPercent(kpis.npl_ratio)}
-              delta="-0.3%"
+              value={kpis.total_loans === 0 ? "N/A" : formatPercent(kpis.npl_ratio)}
+              delta={kpis.total_loans === 0 ? undefined : "-0.3%"}
               isPositive={kpis.npl_ratio <= 5.0}
               hint="Non-Performing Loans Ratio (Delinquent + Default loans / Total Outstanding)"
               icon={TrendingDown}
             />
             <KpiCard
               label="Return on Assets (ROA)"
-              value={formatPercent(kpis.roa)}
-              delta="+0.15%"
+              value={kpis.total_loans === 0 ? "N/A" : formatPercent(kpis.roa)}
+              delta={kpis.total_loans === 0 ? undefined : "+0.15%"}
               isPositive={true}
               hint="Net Interest Earnings minus loan losses divided by total asset base"
               icon={Activity}
@@ -304,7 +317,7 @@ export default function OverviewPage() {
           <Card className="p-4 flex items-center justify-between border-slate-800 bg-slate-900/80">
             <div>
               <span className="text-[11px] font-mono tracking-widest uppercase text-slate-500 font-semibold block">Tier 1 Capital</span>
-              <span className="text-xl font-bold font-mono text-white mt-1 block">{formatCurrency(kpis.capital, true)}</span>
+              <span className="text-xl font-bold font-mono text-white mt-1 block">{kpis.total_loans === 0 ? "N/A" : formatCurrency(kpis.capital, true)}</span>
             </div>
             <ShieldCheck className="w-5 h-5 text-emerald-400 opacity-80" />
           </Card>
@@ -312,7 +325,7 @@ export default function OverviewPage() {
           <Card className="p-4 flex items-center justify-between border-slate-800 bg-slate-900/80">
             <div>
               <span className="text-[11px] font-mono tracking-widest uppercase text-slate-500 font-semibold block">Net Interest Margin</span>
-              <span className="text-xl font-bold font-mono text-white mt-1 block">{formatPercent(kpis.nim)}</span>
+              <span className="text-xl font-bold font-mono text-white mt-1 block">{kpis.total_loans === 0 ? "N/A" : formatPercent(kpis.nim)}</span>
             </div>
             <Activity className="w-5 h-5 text-amber-400 opacity-80" />
           </Card>
