@@ -56,11 +56,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const register = async (email: string, password: string, fullName: string) => {
-    const res: AuthResponse = await registerUser({ email, password, full_name: fullName });
-    localStorage.setItem("bank_twin_token", res.access_token);
-    setToken(res.access_token);
-    setUser(res.user);
-    toast.success(`Account registered successfully! Welcome, ${res.user.full_name}!`);
+    await registerUser({ email, password, full_name: fullName });
+    toast.success("Account registered successfully! Please sign in with your credentials.");
   };
 
   const logout = () => {

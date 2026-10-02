@@ -163,6 +163,8 @@ export function LoginPage() {
     try {
       if (isRegister) {
         await register(email.trim(), password, fullName.trim());
+        setIsRegister(false);
+        setPassword("");
       } else {
         await login(email.trim(), password);
       }

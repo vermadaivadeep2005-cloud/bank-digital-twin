@@ -26,10 +26,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       if (isRegister) {
         await register(email, password, fullName);
+        setIsRegister(false);
+        setPassword("");
       } else {
         await login(email, password);
+        onClose();
       }
-      onClose();
     } catch (err: unknown) {
       const msg = err && typeof err === "object" && "response" in err
         ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
