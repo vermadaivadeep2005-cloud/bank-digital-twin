@@ -297,89 +297,8 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         description="Percentage of bad loans covered by provisions set aside by the bank."
     ))
 
-    # ==================== 3. SWIFT BANKING FRAMEWORK (INTERNATIONAL) ====================
-    # 14. SWIFT Mandatory Controls (CSCF v2024)
-    cscf_val = 100.0
-    st, sev = evaluate_metric_status(cscf_val, 100.0, 0.0)
-    matrix.append(ComplianceMetricItem(
-        metric_key="swift_cscf",
-        name="SWIFT Mandatory Controls (CSCF v2024)",
-        category="Cyber Security & Messaging",
-        framework_id="swift",
-        framework_name="SWIFT Banking Framework",
-        framework_type="international",
-        value=cscf_val,
-        minimum=100.0,
-        buffer=0.0,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="SWIFT CSCF v2024 Control Architecture 1.1 - 7.4",
-        description="Full attestation compliance across mandatory customer security controls for SWIFT gateway access."
-    ))
-
-    # 15. ISO 20022 Financial Messaging Standard
-    iso_val = 96.8
-    st, sev = evaluate_metric_status(iso_val, 95.0, 3.0)
-    matrix.append(ComplianceMetricItem(
-        metric_key="swift_iso20022",
-        name="ISO 20022 Financial Messaging Adoption",
-        category="Cyber Security & Messaging",
-        framework_id="swift",
-        framework_name="SWIFT Banking Framework",
-        framework_type="international",
-        value=iso_val,
-        minimum=95.0,
-        buffer=3.0,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="SWIFT CBPR+ Migration Mandate",
-        description="Adoption rate of rich XML structured ISO 20022 MX message formats for cross-border payments."
-    ))
-
-    # 16. SWIFT Sanctions & Cross-Border Payment Screening
-    screen_val = 99.95
-    st, sev = evaluate_metric_status(screen_val, 99.90, 0.05)
-    matrix.append(ComplianceMetricItem(
-        metric_key="swift_screening",
-        name="Cross-Border Payment Sanctions Screening",
-        category="Transaction Security",
-        framework_id="swift",
-        framework_name="SWIFT Banking Framework",
-        framework_type="international",
-        value=screen_val,
-        minimum=99.90,
-        buffer=0.05,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="SWIFT Payment Controls Protocol & OFAC Directives",
-        description="Real-time automated screening efficiency for SWIFT wire transfers against international sanctions lists."
-    ))
-
-    # 17. SWIFT Relationship Management Application (RMA) Hygiene
-    rma_val = 98.60
-    st, sev = evaluate_metric_status(rma_val, 98.00, 1.5)
-    matrix.append(ComplianceMetricItem(
-        metric_key="swift_rma",
-        name="SWIFT RMA Key Sanitization & Audit",
-        category="Transaction Security",
-        framework_id="swift",
-        framework_name="SWIFT Banking Framework",
-        framework_type="international",
-        value=rma_val,
-        minimum=98.00,
-        buffer=1.5,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="SWIFT RMA Security Policy Directive",
-        description="Active filtering and revocation of dormant correspondent banking RMA authorizations."
-    ))
-
-    # ==================== 4. FATF STANDARDS (INTERNATIONAL AML/CFT) ====================
-    # 18. Customer Due Diligence (CDD / KYC) Compliance
+    # ==================== 3. FATF STANDARDS (INTERNATIONAL AML/CFT) ====================
+    # 14. Customer Due Diligence (CDD / KYC) Compliance
     kyc_val = 98.90
     st, sev = evaluate_metric_status(kyc_val, 98.00, 1.5)
     matrix.append(ComplianceMetricItem(
@@ -399,7 +318,7 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         description="Percentage of active accounts with verified identity documentation and risk classification."
     ))
 
-    # 19. Suspicious Transaction Report (STR) Filing Velocity
+    # 15. Suspicious Transaction Report (STR) Filing Velocity
     str_val = 99.40
     st, sev = evaluate_metric_status(str_val, 99.00, 0.8)
     matrix.append(ComplianceMetricItem(
@@ -419,7 +338,7 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         description="Timely filing of suspicious transaction reports to Financial Intelligence Units (FIU)."
     ))
 
-    # 20. Politically Exposed Persons (PEP) Screening Resolution
+    # 16. Politically Exposed Persons (PEP) Screening Resolution
     pep_val = 99.80
     st, sev = evaluate_metric_status(pep_val, 99.50, 0.4)
     matrix.append(ComplianceMetricItem(
@@ -439,7 +358,7 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         description="Enhanced due diligence resolution speed for PEP customer hits and family associate matches."
     ))
 
-    # 21. Ultimate Beneficial Ownership (UBO) Transparency Index
+    # 17. Ultimate Beneficial Ownership (UBO) Transparency Index
     ubo_val = 92.30
     st, sev = evaluate_metric_status(ubo_val, 90.00, 5.0)
     matrix.append(ComplianceMetricItem(
@@ -459,7 +378,7 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         description="Identification and verification index of natural persons exercising ultimate control over corporate entities."
     ))
 
-    # 22. FATF High-Risk Jurisdiction Exposure Limit
+    # 18. FATF High-Risk Jurisdiction Exposure Limit
     hr_val = 1.10
     st, sev = evaluate_metric_status(hr_val, 2.00, 0.5, is_max=True)
     matrix.append(ComplianceMetricItem(
@@ -480,69 +399,6 @@ def compute_compliance_matrix(db: Session, car_override: float = None, npl_overr
         is_max_threshold=True
     ))
 
-    # 23. FRS 102 UK Sec 11 Loan Impairment Loss Provision Ratio
-    frs_imp_val = 115.0
-    st, sev = evaluate_metric_status(frs_imp_val, 100.0, 15.0)
-    matrix.append(ComplianceMetricItem(
-        metric_key="frs102_loan_impairment",
-        name="FRS 102 Sec 11 Loan Impairment Provision Ratio",
-        category="UK GAAP Financial Reporting",
-        framework_id="frs102",
-        framework_name="FRS 102 UK Framework",
-        framework_type="local",
-        value=frs_imp_val,
-        minimum=100.0,
-        buffer=15.0,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="UK FRC FRS 102 Section 11.21 - Basic Financial Instruments Impairment",
-        description="Evaluates UK FRC FRS 102 credit loss provision coverage against non-performing loans.",
-        is_max_threshold=False
-    ))
-
-    # 24. FRS 102 UK Sec 11 Fair Value Liquidity Reserve Ratio
-    frs_fv_val = round(float(kpis.get("car", 15.2)) * 0.85, 2)
-    st, sev = evaluate_metric_status(frs_fv_val, 12.0, 2.0)
-    matrix.append(ComplianceMetricItem(
-        metric_key="frs102_fair_value_reserve",
-        name="FRS 102 Sec 11 Fair Value Liquidity Reserve",
-        category="Financial Instrument Valuation",
-        framework_id="frs102",
-        framework_name="FRS 102 UK Framework",
-        framework_type="local",
-        value=frs_fv_val,
-        minimum=12.0,
-        buffer=2.0,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="UK FRC FRS 102 Section 11.27 - Fair Value Measurement Hierarchy",
-        description="Monitors UK GAAP liquidity buffer for Level 1 and Level 2 financial instruments.",
-        is_max_threshold=False
-    ))
-
-    # 25. FRS 102 UK Sec 12 Retained Capital Protection Ratio
-    frs_cap_val = round(float(kpis.get("car", 15.2)), 2)
-    st, sev = evaluate_metric_status(frs_cap_val, 10.5, 2.5)
-    matrix.append(ComplianceMetricItem(
-        metric_key="frs102_capital_protection",
-        name="FRS 102 Sec 12 Retained Capital Protection Ratio",
-        category="Solvency & Capital",
-        framework_id="frs102",
-        framework_name="FRS 102 UK Framework",
-        framework_type="local",
-        value=frs_cap_val,
-        minimum=10.5,
-        buffer=2.5,
-        status=st,
-        severity=sev,
-        unit="%",
-        clause_reference="UK FRC FRS 102 Section 12 - Other Financial Instruments Issues",
-        description="Evaluates UK reporting entity retained capital buffer protection under FRC guidelines.",
-        is_max_threshold=False
-    ))
-
     return matrix
 
 
@@ -558,9 +414,7 @@ def get_full_compliance_report(db: Session) -> ComplianceReportResponse:
     framework_defs = [
         ("rbi", "RBI Regulatory Framework", "local", "Reserve Bank of India Monetary Policy & Prudential Norms"),
         ("basel", "Basel III / IV Accord", "international", "Global Capital Adequacy, Solvency, & Liquidity Standards"),
-        ("swift", "SWIFT Banking Framework", "international", "Customer Security Controls Framework (CSCF) & ISO 20022"),
         ("fatf", "FATF Standards", "international", "Financial Action Task Force International AML/CFT Standards"),
-        ("frs102", "FRS 102 UK Framework", "local", "UK FRC Financial Reporting Standard for Financial Instruments & Credit Loss Impairments"),
     ]
 
     frameworks_info: List[FrameworkInfo] = []

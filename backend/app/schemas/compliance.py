@@ -3,8 +3,8 @@ from typing import List, Dict, Optional
 
 
 class FrameworkInfo(BaseModel):
-    id: str           # basel, rbi, swift, fatf
-    name: str         # Basel III / IV, RBI Framework, SWIFT Banking, FATF Standards
+    id: str           # basel, rbi, fatf
+    name: str         # Basel III / IV, RBI Framework, FATF Standards
     type: str         # local, international
     description: str
     total_metrics: int
@@ -17,9 +17,9 @@ class FrameworkInfo(BaseModel):
 class ComplianceMetricItem(BaseModel):
     metric_key: str
     name: str
-    category: str        # Capital Adequacy, Monetary Policy, Cyber Security, AML/CFT
-    framework_id: str    # basel, rbi, swift, fatf
-    framework_name: str  # Basel III / IV, RBI Regulatory Framework, SWIFT Banking, FATF Standards
+    category: str        # Capital Adequacy, Monetary Policy, AML/CFT
+    framework_id: str    # basel, rbi, fatf
+    framework_name: str  # Basel III / IV, RBI Regulatory Framework, FATF Standards
     framework_type: str  # local, international
     value: float
     minimum: float

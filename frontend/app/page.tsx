@@ -146,20 +146,15 @@ export default function OverviewPage() {
       ],
       tables: [
         {
-          title: "Multi-Framework Regulatory Compliance Matrix (RBI, Basel III/IV, SWIFT, FATF, FRS 102 UK)",
+          title: "Multi-Framework Regulatory Compliance Matrix (RBI, Basel III/IV, FATF)",
           headers: ["Regulatory Standard", "Framework", "Minimum Target", "Current Position", "Compliance Status"],
           rows: [
             ["Total Capital Adequacy Ratio (CAR)", "Basel III Accord", ">= 8.0%", `${kpis.car.toFixed(2)}%`, kpis.car >= 8 ? "PASSED" : "CRITICAL"],
             ["Cash Reserve Ratio (CRR)", "RBI Framework (Local)", ">= 4.5%", "4.65%", "PASSED"],
             ["Statutory Liquidity Ratio (SLR)", "RBI Framework (Local)", ">= 18.0%", "18.85%", "PASSED"],
             ["Gross NPA (PCA Threshold)", "RBI Framework (Local)", "<= 6.0%", `${kpis.npl_ratio.toFixed(2)}%`, kpis.npl_ratio <= 6 ? "PASSED" : "WATCHLIST"],
-            ["CSCF v2024 Security Controls", "SWIFT Banking", "100.0%", "100.0%", "PASSED"],
-            ["ISO 20022 MX Migration Rate", "SWIFT Banking", ">= 95.0%", "96.80%", "PASSED"],
             ["Customer Due Diligence (CDD/KYC)", "FATF Standards", ">= 98.0%", "98.90%", "PASSED"],
             ["Suspicious Transaction Filing (STR)", "FATF Standards", ">= 99.0%", "99.40%", "PASSED"],
-            ["Sec 11 Loan Impairment Provision Ratio", "FRS 102 UK Framework", ">= 2.5%", "3.40%", "PASSED"],
-            ["Sec 11 Fair Value Liquidity Reserve Ratio", "FRS 102 UK Framework", ">= 12.0%", "14.20%", "PASSED"],
-            ["Sec 12 Retained Capital Protection Ratio", "FRS 102 UK Framework", ">= 10.0%", "12.80%", "PASSED"],
           ],
         },
       ],

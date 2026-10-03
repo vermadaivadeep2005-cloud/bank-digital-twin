@@ -12,6 +12,7 @@ import {
   Printer,
   RotateCcw,
   Zap,
+  Scale,
   Sliders,
   ShieldCheck,
   AlertTriangle,
@@ -28,6 +29,7 @@ import ScenarioForm from "@/components/stress/ScenarioForm";
 import MonteCarloFan from "@/components/charts/MonteCarloFan";
 import LossHistogram from "@/components/charts/LossHistogram";
 import SegmentBar from "@/components/charts/SegmentBar";
+import RegulatoryComplianceMatrix from "@/components/stress/RegulatoryComplianceMatrix";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,8 +59,8 @@ function StressContent() {
     [presetName, presetUnemp, presetRate]
   );
 
-  // Engine Mode: 'forward' (standard Monte Carlo) vs 'reverse' (Reverse Stress & 2-Way Retest)
-  const [engineMode, setEngineMode] = React.useState<"forward" | "reverse">("forward");
+  // Engine Mode: 'forward' | 'compliance' | 'reverse'
+  const [engineMode, setEngineMode] = React.useState<"forward" | "compliance" | "reverse">("forward");
 
   // Forward state
   const [result, setResult] = React.useState<StressTestResponse | null>(null);
@@ -80,6 +82,22 @@ function StressContent() {
 
   const [reverseResult, setReverseResult] = React.useState<ReverseStressResponse | null>(null);
   const [reverseLoading, setReverseLoading] = React.useState(false);
+
+  const postCarVal = React.useMemo(() => {
+    if (!result) return 11.4;
+    const totOut = result.summary.portfolio_size || 1;
+    const expLoss = result.summary.expected_loss || 0;
+    const remCapital = result.summary.initial_capital - expLoss;
+    const rwa = totOut * 0.70;
+    return rwa > 0 ? (remCapital / rwa) * 100 : 11.4;
+  }, [result]);
+
+  const postNplVal = React.useMemo(() => {
+    if (!result) return 6.8;
+    const totOut = result.summary.portfolio_size || 1;
+    const expLoss = result.summary.expected_loss || 0;
+    return Math.min(35.0, (expLoss / totOut) * 100 + 2.5);
+  }, [result]);
 
   // Run forward stress test
   const handleRun = React.useCallback(async (payload: StressTestPayload) => {
@@ -264,18 +282,30 @@ function StressContent() {
         </div>
       </div>
 
-      {/* Mode Switcher Tabs (Forward Engine vs Reverse Engine) */}
-      <div className="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 rounded-2xl p-1.5 backdrop-blur-md">
+      {/* Mode Switcher Tabs (Forward Engine vs Compliance Matrix vs Reverse Engine) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-950/80 border border-slate-800 rounded-2xl p-1.5 backdrop-blur-md">
         <button
           onClick={() => setEngineMode("forward")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition ${
+          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
             engineMode === "forward"
               ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30"
               : "text-slate-400 hover:text-white hover:bg-slate-900/50"
           }`}
         >
-          <Zap className="h-4 w-4" />
-          <span>Forward Vasicek Stress Engine (Monte Carlo + Copulas)</span>
+          <Zap className="h-4 w-4 shrink-0" />
+          <span>Forward Vasicek Stress Engine</span>
+        </button>
+
+        <button
+          onClick={() => setEngineMode("compliance")}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
+            engineMode === "compliance"
+              ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30"
+              : "text-slate-400 hover:text-white hover:bg-slate-900/50"
+          }`}
+        >
+          <Scale className="h-4 w-4 text-emerald-300 shrink-0" />
+          <span>Regulatory Compliance Matrix (RBI, Basel III/IV, FATF)</span>
         </button>
 
         <button
@@ -285,14 +315,14 @@ function StressContent() {
               handleRunReverse();
             }
           }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition ${
+          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
             engineMode === "reverse"
               ? "bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow-lg shadow-amber-600/30"
               : "text-slate-400 hover:text-white hover:bg-slate-900/50"
           }`}
         >
-          <RefreshCw className="h-4 w-4" />
-          <span>Reverse Stress & 2-Way Retesting Engine</span>
+          <RefreshCw className="h-4 w-4 shrink-0" />
+          <span>Reverse Stress & 2-Way Engine</span>
         </button>
       </div>
 
@@ -487,10 +517,38 @@ function StressContent() {
                     </Card>
                   </div>
                 )}
+
+                {/* Post-Stress Multi-Framework Regulatory Compliance Matrix */}
+                <RegulatoryComplianceMatrix
+                  preCar={15.2}
+                  postCar={postCarVal}
+                  preNpl={2.5}
+                  postNpl={postNplVal}
+                  unemploymentShock={result?.params?.unemployment_shock ?? initialParams.unemployment_shock ?? 0.05}
+                  rateShock={result?.params?.rate_shock ?? initialParams.rate_shock ?? 0.02}
+                  survivedPct={result?.survived_pct ?? 94.5}
+                  expectedLoss={result?.summary?.expected_loss ?? 45000000}
+                />
               </motion.div>
             )}
           </div>
         </div>
+      )}
+
+      {/* MODE 2: REGULATORY COMPLIANCE MATRIX */}
+      {engineMode === "compliance" && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <RegulatoryComplianceMatrix
+            preCar={15.2}
+            postCar={postCarVal}
+            preNpl={2.5}
+            postNpl={postNplVal}
+            unemploymentShock={result?.params?.unemployment_shock ?? initialParams.unemployment_shock ?? 0.05}
+            rateShock={result?.params?.rate_shock ?? initialParams.rate_shock ?? 0.02}
+            survivedPct={result?.survived_pct ?? 94.5}
+            expectedLoss={result?.summary?.expected_loss ?? 45000000}
+          />
+        </motion.div>
       )}
 
       {/* MODE 2: REVERSE STRESS & 2-WAY MITIGATION TESTING ENGINE */}
@@ -767,6 +825,18 @@ function StressContent() {
                     <MonteCarloFan paths={reverseResult.post_mitigation_results.capital_paths} />
                   </Card>
                 </div>
+
+                {/* Post-Stress Multi-Framework Regulatory Compliance Matrix */}
+                <RegulatoryComplianceMatrix
+                  preCar={15.2}
+                  postCar={reverseResult.post_mitigation_results.survived_pct >= 50 ? 10.2 : 6.4}
+                  preNpl={2.5}
+                  postNpl={reverseResult.post_mitigation_results.survived_pct >= 50 ? 6.5 : 12.8}
+                  unemploymentShock={reverseResult.breaking_shock.unemployment_shock}
+                  rateShock={reverseResult.breaking_shock.rate_shock}
+                  survivedPct={reverseResult.post_mitigation_results.survived_pct}
+                  expectedLoss={reverseResult.post_mitigation_results.summary.expected_loss}
+                />
               </motion.div>
             )}
           </div>

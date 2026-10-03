@@ -22,7 +22,6 @@ import { BankLogo } from "@/components/common/BankLogo";
 const items = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/what-if", label: "What-If Simulator", icon: Sliders },
-  { href: "/compliance", label: "Compliance Matrix", icon: Scale },
   { href: "/fraud", label: "Fraud Intelligence", icon: ShieldAlert },
   { href: "/forecasts", label: "Predictive Forecasts", icon: TrendingUp },
   { href: "/stress", label: "Stress Engine", icon: Zap },

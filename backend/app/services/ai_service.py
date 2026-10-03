@@ -178,9 +178,6 @@ FULL APPLICATION & SCREEN GUIDE:
 - FRAUD DETECTION (`/fraud`):
   * What it does: IsolationForest ML anomaly scanner scoring transactions in real-time.
 
-- REGULATORY COMPLIANCE (`/compliance`):
-  * What it does: Multi-framework compliance matrix (RBI, Basel III/IV, SWIFT, FATF, FRS 102 UK).
-
 - AUDIT HISTORY (`/history`):
   * What it does: Log of all executed stress tests with PDF/CSV export.
 

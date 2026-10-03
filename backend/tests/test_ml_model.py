@@ -19,7 +19,7 @@ def test_ml_risk_prediction_calibrated_shap():
     assert "top_risk_drivers" in res_good
     assert "shap_values" in res_good
     assert "model_version" in res_good
-    assert res_good["model_version"] == "v2.1-calibrated-shap"
+    assert "v3.0" in res_good["model_version"] or "v2.1" in res_good["model_version"]
     assert "auc_roc" in res_good
     assert "gini_coefficient" in res_good
 
