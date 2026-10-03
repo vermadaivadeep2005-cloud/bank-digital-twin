@@ -25,6 +25,8 @@ class ChatMessage(BaseModel):
 
 class ChatPayload(BaseModel):
     messages: List[ChatMessage]
+    current_page: Optional[str] = "/"
+    page_context: Optional[Dict[str, Any]] = None
 
 
 @router.get("/copilot")
@@ -62,7 +64,12 @@ def ai_financial_chat(payload: ChatPayload, db: Session = Depends(get_db)):
     try:
         kpis = compute_kpis(db)
         msgs = [m.model_dump() for m in payload.messages]
-        reply = chat_with_financial_copilot(msgs, kpis)
+        reply = chat_with_financial_copilot(
+            messages=msgs,
+            kpis_context=kpis,
+            current_page=payload.current_page or "/",
+            page_context=payload.page_context,
+        )
         return {"reply": reply}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

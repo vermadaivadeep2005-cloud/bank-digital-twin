@@ -7,14 +7,20 @@ router = APIRouter(prefix="/ml", tags=["Machine Learning Risk Engine"])
 
 
 class PredictRiskRequest(BaseModel):
-    credit_score: int = Field(700, ge=300, le=850)
-    income: float = Field(75000.0, ge=10000.0)
-    age: int = Field(38, ge=18, le=100)
-    employment_status: str = Field("employed")  # employed / self-employed / unemployed / retired
-    loan_type: str = Field("mortgage")          # mortgage / personal / auto / business
+    credit_score: int = Field(720, ge=300, le=850)
+    income: float = Field(85000.0, ge=0.0) # Primary annual income
+    asset_income: float = Field(15000.0, ge=0.0) # Collective asset/rental/shop annual income
+    age: int = Field(40, ge=18, le=100)
+    employment_status: str = Field("employed") # legacy compatibility
+    employment_type: str = Field("pvt_permanent") # gov_permanent / pvt_permanent / contractual / self_employed / unemployed
+    profession_sector: str = Field("it_tech") # gov_public / healthcare / it_tech / finance / trade_retail / construction_manufacturing / other
+    loan_type: str = Field("mortgage") # mortgage / home / business / personal / auto / education
     principal: float = Field(250000.0, ge=1000.0)
     outstanding: float = Field(180000.0, ge=0.0)
-    interest_rate: float = Field(0.065, ge=0.001, le=0.30)
+    interest_rate: float = Field(0.055, ge=0.001, le=0.30)
+    tenure_months: int = Field(180, ge=6, le=360)
+    monthly_expenses: float = Field(1500.0, ge=0.0)
+    existing_emis: float = Field(500.0, ge=0.0)
 
 
 @router.post("/predict")
@@ -28,4 +34,10 @@ def predict_risk(req: PredictRiskRequest):
         principal=req.principal,
         outstanding=req.outstanding,
         interest_rate=req.interest_rate,
+        asset_income=req.asset_income,
+        employment_type=req.employment_type,
+        profession_sector=req.profession_sector,
+        tenure_months=req.tenure_months,
+        monthly_expenses=req.monthly_expenses,
+        existing_emis=req.existing_emis,
     )

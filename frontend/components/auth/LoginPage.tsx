@@ -195,7 +195,7 @@ export function LoginPage() {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span className="text-xs font-mono text-slate-400 uppercase tracking-widest hidden sm:inline">
-            System Online • Basel III Compliant
+            System Online
           </span>
         </div>
       </header>

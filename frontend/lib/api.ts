@@ -111,8 +111,18 @@ export const generateAiScenario = async (prompt: string) => {
   return (await API.post("/api/v1/ai/generate-scenario", { prompt })).data;
 };
 
-export const chatWithAiCopilot = async (messages: Array<{ role: string; content: string }>) => {
-  return (await API.post("/api/v1/ai/chat", { messages })).data;
+export const chatWithAiCopilot = async (
+  messages: Array<{ role: string; content: string }>,
+  currentPage?: string,
+  pageContext?: Record<string, unknown>
+) => {
+  return (
+    await API.post("/api/v1/ai/chat", {
+      messages,
+      current_page: currentPage || "/",
+      page_context: pageContext || {},
+    })
+  ).data;
 };
 
 // What-If Interactive Simulator API

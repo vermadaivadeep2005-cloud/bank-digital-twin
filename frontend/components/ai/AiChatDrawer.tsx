@@ -19,6 +19,7 @@ import {
   GripHorizontal,
   GripVertical,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { chatWithAiCopilot } from "@/lib/api";
@@ -47,6 +48,7 @@ function getFormattedTime(): string {
 }
 
 export function AiChatDrawer() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [input, setInput] = React.useState("");
@@ -66,7 +68,7 @@ export function AiChatDrawer() {
       id: generateMsgId("init"),
       role: "assistant",
       content:
-        "Greetings! I am your AI Executive Risk Copilot. I can analyze bank capital adequacy (Basel III CAR/RWA), stress test scenarios, credit default probabilities (PD/LGD), and portfolio risk hedges.\n\n🎙️ Both-side Voice Mode is enabled! Speak into your mic or listen to my spoken responses.",
+        "Greetings! I am your AI Digital Twin Assistant. Ask me what is on your screen, how to use controls (like sliders or stress test parameters), or how to analyze bank risk. Responses are quick and direct!",
       timestamp: getFormattedTime(),
     },
   ]);
@@ -201,7 +203,7 @@ export function AiChatDrawer() {
 
     try {
       const apiPayload = updatedMsgs.map((m) => ({ role: m.role, content: m.content }));
-      const res = await chatWithAiCopilot(apiPayload);
+      const res = await chatWithAiCopilot(apiPayload, pathname, { path: pathname });
 
       const aiMsg: Message = {
         id: generateMsgId("ai"),
@@ -221,7 +223,9 @@ export function AiChatDrawer() {
         id: generateMsgId("ai"),
         role: "assistant",
         content:
-          "I am analyzing portfolio capital vectors. Under current Basel III rules, Tier 1 capital ratio remains healthy at 15.0% against risk-weighted assets.",
+          pathname === "/stress"
+            ? "You are on the Stress Engine page. Drag the Unemployment Shock slider from 0.0% up to 8.0% (for severe stress) and click 'Run Monte Carlo Stress Test'."
+            : "Bank Digital Twin AI is active. Ask me how to use any screen or run simulations.",
         timestamp: getFormattedTime(),
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -234,10 +238,10 @@ export function AiChatDrawer() {
   };
 
   const samplePrompts = [
-    "📊 Evaluate our Basel III CAR capital ratio",
-    "⚡ Explain Monte Carlo stress test methodology",
-    "⚠️ How does stagflation affect loan default PD?",
-    "🛡️ Recommend Tier 1 capital hedging strategies",
+    "📍 What is going on on this screen & how do I use it?",
+    "🎯 Where should I drag the Unemployment Shock slider?",
+    "⚡ How do I run a Monte Carlo stress test?",
+    "📊 How do I evaluate bank capital adequacy (CAR)?",
   ];
 
   const clearChat = () => {

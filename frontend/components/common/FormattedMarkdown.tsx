@@ -18,8 +18,18 @@ export function FormattedMarkdown({ content, className = "" }: FormattedMarkdown
   const elements = React.useMemo(() => {
     if (!content) return null;
 
-    // Clean up raw text issues
+    // Clean up raw text issues and sanitize LaTeX markup to plain text
     const cleanedText = content
+      .replace(/\\\(|\\\)/g, "")
+      .replace(/\\\[|\\\]/g, "")
+      .replace(/\$\$/g, "")
+      .replace(/\\text\{([^}]+)\}/g, "$1")
+      .replace(/\\mathrm\{([^}]+)\}/g, "$1")
+      .replace(/\\mathbf\{([^}]+)\}/g, "$1")
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1 / $2)")
+      .replace(/\\times/g, "×")
+      .replace(/\\cdot/g, "·")
+      .replace(/\\%/g, "%")
       .replace(/(\w)--(\w)/g, "$1 - $2")
       .replace(/\s*—\s*—\s*—\s*/g, "---");
 

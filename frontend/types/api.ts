@@ -15,22 +15,46 @@ export interface AuthResponse {
 export interface PredictRiskPayload {
   credit_score: number;
   income: number;
-  age: number;
-  employment_status: string;
+  asset_income?: number;
+  age?: number;
+  employment_status?: string;
+  employment_type?: string;
+  profession_sector?: string;
   loan_type: string;
   principal: number;
   outstanding: number;
   interest_rate: number;
+  tenure_months?: number;
+  monthly_expenses?: number;
+  existing_emis?: number;
 }
 
 export interface PredictRiskResponse {
   probability_of_default: number;
+  raw_probability_of_default?: number;
+  calibrated_pd?: number;
   risk_grade: string;
   risk_level: string;
   variant: "success" | "info" | "warning" | "danger";
+  underwriting_decision?: "APPROVED" | "CONDITIONALLY APPROVED" | "DECLINED";
+  decision_reason?: string;
+  new_loan_emi?: number;
+  total_monthly_income?: number;
+  primary_monthly_income?: number;
+  asset_monthly_income?: number;
+  monthly_expenses?: number;
+  existing_emis?: number;
+  total_monthly_obligation?: number;
+  net_disposable_income?: number;
+  foir_ratio?: number;
   debt_to_income_ratio: number;
+  max_eligible_loan_principal?: number;
+  max_eligible_emi?: number;
   top_risk_drivers: { feature: string; importance: number }[];
   model_type: string;
+  model_version?: string;
+  auc_roc?: number;
+  gini_coefficient?: number;
 }
 
 export interface Kpis {
