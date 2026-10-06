@@ -30,6 +30,7 @@ import MonteCarloFan from "@/components/charts/MonteCarloFan";
 import LossHistogram from "@/components/charts/LossHistogram";
 import SegmentBar from "@/components/charts/SegmentBar";
 import RegulatoryComplianceMatrix from "@/components/stress/RegulatoryComplianceMatrix";
+import RegulatoryStressResults from "@/components/stress/RegulatoryStressResults";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,7 @@ import {
 } from "@/types/api";
 import { formatCurrency } from "@/lib/format";
 import { downloadJson, exportPdfReport } from "@/lib/exportUtils";
+import { REGULATORY_PROFILES, RegulatoryProfile } from "@/lib/regulatoryProfiles";
 
 function StressContent() {
   const searchParams = useSearchParams();
@@ -73,6 +75,8 @@ function StressContent() {
   const [targetValue, setTargetValue] = React.useState<number>(8.0);
   const [reverseCopula, setReverseCopula] = React.useState<"gaussian" | "student_t">("gaussian");
   const [reverseDegreesOfFreedom, setReverseDegreesOfFreedom] = React.useState<number>(5);
+  const [regulatoryProfile, setRegulatoryProfile] = React.useState<RegulatoryProfile>("india_rbi");
+  const [reverseCapitalMetric, setReverseCapitalMetric] = React.useState<"total" | "tier1" | "cet1">("total");
 
   // Management Mitigation Actions
   const [capitalInjection, setCapitalInjection] = React.useState<number>(50000000); // $50M
@@ -82,6 +86,13 @@ function StressContent() {
 
   const [reverseResult, setReverseResult] = React.useState<ReverseStressResponse | null>(null);
   const [reverseLoading, setReverseLoading] = React.useState(false);
+
+  const profileThresholds = REGULATORY_PROFILES[regulatoryProfile];
+  const reverseCapitalThreshold = reverseCapitalMetric === "cet1"
+    ? profileThresholds.cet1 / 0.58
+    : reverseCapitalMetric === "tier1"
+    ? profileThresholds.tier1 / 0.70
+    : profileThresholds.total;
 
   const postCarVal = React.useMemo(() => {
     if (!result) return 11.4;
@@ -166,8 +177,9 @@ function StressContent() {
       const res = await runReverseStressTest({
         scenario_name: "Reverse Stress Breaking Point & 2-Way Retest",
         target_metric: targetMetric,
-        target_value: targetValue,
+        target_value: targetMetric === "car_breach" ? reverseCapitalThreshold : targetValue,
         copula_type: reverseCopula,
+        regulatory_profile: regulatoryProfile,
         degrees_of_freedom: reverseDegreesOfFreedom,
         n_sims: 1000,
         horizon_months: 24,
@@ -331,7 +343,13 @@ function StressContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Scenario Form */}
           <div className="lg:col-span-1">
-            <ScenarioForm onSubmit={handleRun} loading={loading} initialParams={initialParams} />
+            <ScenarioForm
+              onSubmit={handleRun}
+              loading={loading}
+              initialParams={initialParams}
+              regulatoryProfile={regulatoryProfile}
+              onRegulatoryProfileChange={setRegulatoryProfile}
+            />
             {error && (
               <div className="mt-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
                 <p className="font-semibold mb-1">Simulation Error</p>
@@ -355,6 +373,11 @@ function StressContent() {
 
             {!loading && result && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <RegulatoryStressResults
+                  result={result}
+                  profile={regulatoryProfile}
+                  copulaType={result.params?.copula_type || "dual"}
+                />
                 {/* Copula Badge Notice */}
                 {result.copula_label && (
                   <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-300 font-mono">
@@ -367,7 +390,7 @@ function StressContent() {
                 )}
 
                 {/* Dual Copula Internal Tail Risk Comparison Card */}
-                {result.tail_risk_comparison && (
+                {result.tail_risk_comparison && result.params?.copula_type === "dual" && (
                   <Card className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-indigo-500/30">
                     <div className="flex items-center justify-between border-b border-indigo-500/20 pb-3 mb-3">
                       <div className="flex items-center gap-2">
@@ -518,17 +541,6 @@ function StressContent() {
                   </div>
                 )}
 
-                {/* Post-Stress Multi-Framework Regulatory Compliance Matrix */}
-                <RegulatoryComplianceMatrix
-                  preCar={15.2}
-                  postCar={postCarVal}
-                  preNpl={2.5}
-                  postNpl={postNplVal}
-                  unemploymentShock={result?.params?.unemployment_shock ?? initialParams.unemployment_shock ?? 0.05}
-                  rateShock={result?.params?.rate_shock ?? initialParams.rate_shock ?? 0.02}
-                  survivedPct={result?.survived_pct ?? 94.5}
-                  expectedLoss={result?.summary?.expected_loss ?? 45000000}
-                />
               </motion.div>
             )}
           </div>
@@ -569,20 +581,51 @@ function StressContent() {
 
               {/* Target Metric Selection */}
               <div>
+                <label htmlFor="reverse-regulatory-profile" className="text-xs font-semibold text-slate-300 block mb-1">Regulatory Profile</label>
+                <select
+                  id="reverse-regulatory-profile"
+                  value={regulatoryProfile}
+                  onChange={(e) => setRegulatoryProfile(e.target.value as RegulatoryProfile)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500 transition"
+                >
+                  {Object.entries(REGULATORY_PROFILES).map(([key, profile]) => <option key={key} value={key}>{profile.label}</option>)}
+                </select>
+              </div>
+
+              <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">Reverse Target Metric</label>
                 <select
                   value={targetMetric}
-                  onChange={(e) => setTargetMetric(e.target.value)}
+                  onChange={(e) => { setTargetMetric(e.target.value); if (e.target.value === "car_breach") setReverseCapitalMetric("total"); }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500 transition"
                 >
-                  <option value="car_breach">CAR Breach (&lt; 8.0% Regulatory Minimum)</option>
+                  <option value="car_breach">Regulatory Capital Minimum Breach</option>
                   <option value="solvency_breach">Bank Solvency Failure (CAR ≤ 0.0%)</option>
                   <option value="loss_threshold">Expected Loss Threshold ($M)</option>
                 </select>
               </div>
 
+              {targetMetric === "car_breach" && (
+                <div className="space-y-2">
+                  <label htmlFor="reverse-capital-metric" className="text-xs font-semibold text-slate-300 block">Capital Threshold</label>
+                  <select
+                    id="reverse-capital-metric"
+                    value={reverseCapitalMetric}
+                    onChange={(e) => setReverseCapitalMetric(e.target.value as "total" | "tier1" | "cet1")}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="total">Total Capital Minimum</option>
+                    <option value="tier1">Tier 1 Minimum</option>
+                    <option value="cet1">CET1 Minimum</option>
+                  </select>
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-slate-300">
+                    Automatically derived threshold: <strong className="font-mono text-amber-300">{reverseCapitalMetric === "total" ? profileThresholds.total : reverseCapitalMetric === "tier1" ? profileThresholds.tier1 : profileThresholds.cet1}%</strong>
+                  </div>
+                </div>
+              )}
+
               {/* Target Value Input */}
-              <div>
+              {targetMetric !== "car_breach" && <div>
                 <div className="flex items-center justify-between text-xs mb-1">
                   <label className="font-semibold text-slate-300">Target Metric Value</label>
                   <span className="font-mono text-amber-400 font-bold">
@@ -596,7 +639,7 @@ function StressContent() {
                   onChange={(e) => setTargetValue(parseFloat(e.target.value))}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none font-mono"
                 />
-              </div>
+              </div>}
 
               {/* Copula selection for reverse engine */}
               <div className="space-y-2 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">

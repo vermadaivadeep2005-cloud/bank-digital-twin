@@ -124,6 +124,7 @@ export interface StressTestPayload {
   n_sims: number;
   horizon_months: number;
   seed?: number;
+  regulatory_profile?: string;
 }
 
 export interface StressSummary {
@@ -164,6 +165,13 @@ export interface StressTestResponse {
   params: StressTestPayload;
   summary: StressSummary;
   tail_risk_comparison?: TailRiskComparison;
+  model_results?: Record<string, {
+    expected_loss: number;
+    tail_loss: number;
+    stressed_car: number;
+    npl_ratio: number;
+    capital_ratio_distribution: number[];
+  }>;
   distribution: number[];
   capital_paths: { p5: number[]; p50: number[]; p95: number[] };
   survived_pct: number;
@@ -189,6 +197,7 @@ export interface ReverseStressPayload {
   n_sims: number;
   horizon_months: number;
   actions?: MitigationActions;
+  regulatory_profile?: string;
 }
 
 export interface TwoWayComparison {
@@ -216,7 +225,11 @@ export interface ReverseStressResponse {
 export interface StressRunOut {
   id: string;
   scenario_name: string;
-  params?: Record<string, any>;
+  params?: {
+    unemployment_shock?: number;
+    rate_shock?: number;
+    [key: string]: unknown;
+  };
   results?: {
     summary?: StressSummary;
     survived_pct?: number;
@@ -224,7 +237,7 @@ export interface StressRunOut {
     target_value?: number;
     breaking_shock?: { unemployment_shock?: number; rate_shock?: number };
     mitigation_status?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   created_at: string;
 }

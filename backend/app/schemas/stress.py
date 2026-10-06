@@ -13,6 +13,7 @@ class StressTestRequest(BaseModel):
     n_sims: int = Field(1000, ge=100, le=10000, description="Number of Monte Carlo simulations (100 to 10,000)")
     horizon_months: int = Field(24, ge=6, le=60, description="Stress testing horizon in months (6 to 60)")
     seed: Optional[int] = Field(42, description="Deterministic random seed")
+    regulatory_profile: str = Field("india_rbi", description="Regulatory threshold profile")
 
     @field_validator("scenario_name")
     @classmethod
@@ -60,6 +61,7 @@ class StressTestResponse(BaseModel):
     params: Dict[str, Any]
     summary: StressSummary
     tail_risk_comparison: Optional[TailRiskComparison] = None
+    model_results: Optional[Dict[str, Any]] = None
     distribution: List[float]
     capital_paths: Dict[str, List[float]]
     survived_pct: float
@@ -82,6 +84,7 @@ class ReverseStressRequest(BaseModel):
     n_sims: int = Field(1000, ge=100, le=5000)
     horizon_months: int = Field(24, ge=6, le=60)
     actions: Optional[MitigationActions] = Field(default_factory=MitigationActions)
+    regulatory_profile: str = Field("india_rbi", description="Regulatory threshold profile")
 
 
 class TwoWayComparison(BaseModel):
@@ -114,4 +117,3 @@ class StressRunOut(BaseModel):
     params: Dict[str, Any]
     results: Dict[str, Any]
     created_at: datetime
-

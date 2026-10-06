@@ -51,6 +51,7 @@ def run_and_persist_stress_test(
         params=params_dict,
         summary=result["summary"],
         tail_risk_comparison=result.get("tail_risk_comparison"),
+        model_results=result.get("model_results"),
         distribution=result["distribution"],
         capital_paths=result["capital_paths"],
         survived_pct=result["survived_pct"],
@@ -111,4 +112,3 @@ def run_and_persist_reverse_stress_test(
         mitigation_status=res["mitigation_status"],
         summary_advisory=res["summary_advisory"],
     )
-

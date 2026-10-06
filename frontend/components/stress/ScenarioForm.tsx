@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StressTestPayload } from "@/types/api";
+import { REGULATORY_PROFILES, RegulatoryProfile } from "@/lib/regulatoryProfiles";
 
 const PRESETS = [
   { label: "Baseline", unemp: 0.0, rate: 0.0, horizon: 24, sims: 1000 },
@@ -19,9 +20,11 @@ interface ScenarioFormProps {
   onSubmit: (payload: StressTestPayload) => void;
   loading: boolean;
   initialParams?: Partial<StressTestPayload>;
+  regulatoryProfile: RegulatoryProfile;
+  onRegulatoryProfileChange: (profile: RegulatoryProfile) => void;
 }
 
-export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormProps) {
+export function ScenarioForm({ onSubmit, loading, initialParams, regulatoryProfile, onRegulatoryProfileChange }: ScenarioFormProps) {
   const [scenarioName, setScenarioName] = React.useState(initialParams?.scenario_name || "Custom Stress Scenario");
   const [unemploymentShock, setUnemploymentShock] = React.useState(initialParams?.unemployment_shock ?? 0.05);
   const [rateShock, setRateShock] = React.useState(initialParams?.rate_shock ?? 0.02);
@@ -51,7 +54,8 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       degrees_of_freedom: degreesOfFreedom,
       n_sims: preset.sims,
       horizon_months: preset.horizon,
-      seed: Date.now() % 100000,
+      seed: 42,
+      regulatory_profile: regulatoryProfile,
     });
   };
 
@@ -66,6 +70,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
       n_sims: nSims,
       horizon_months: horizonMonths,
       seed: Math.floor(Math.random() * 100000),
+      regulatory_profile: regulatoryProfile,
     });
   };
 
@@ -88,7 +93,7 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
           </div>
           <div>
             <CardTitle className="text-base text-white">Scenario Configurator</CardTitle>
-            <CardDescription className="text-xs">Adjust Basel III macroeconomic shock vectors</CardDescription>
+            <CardDescription className="text-xs">Configure macroeconomic shocks and regulatory thresholds</CardDescription>
           </div>
         </div>
       </div>
@@ -257,6 +262,22 @@ export function ScenarioForm({ onSubmit, loading, initialParams }: ScenarioFormP
               <p className="text-[10px] text-purple-300/80">Lower ν = heavier tail correlation & joint default spikes</p>
             </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="regulatory-profile" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+            Regulatory Profile
+          </label>
+          <select
+            id="regulatory-profile"
+            value={regulatoryProfile}
+            onChange={(e) => onRegulatoryProfileChange(e.target.value as RegulatoryProfile)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
+          >
+            {Object.entries(REGULATORY_PROFILES).map(([key, profile]) => (
+              <option key={key} value={key}>{profile.label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Advanced Options Toggle */}

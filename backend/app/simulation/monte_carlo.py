@@ -101,18 +101,22 @@ def run_monte_carlo_vectorized(
     # ==================== DUAL COPULA MODELING ====================
     # Both Gaussian Copula (Normal) and Student's t-Copula (Heavy Tail) run together internally
     copula_clean = (copula_type or "dual").lower().strip()
+    if copula_clean not in {"dual", "gaussian", "student_t"}:
+        copula_clean = "dual"
     df_val = max(3, int(degrees_of_freedom))
 
     from scipy.stats import t, norm
 
-    # 1. Standard Gaussian Copula draws (Standard Normal)
-    z_factors_gauss = rng.normal(loc=0.0, scale=1.0, size=n_sims)
-
-    # 2. Student's t-Copula draws (Heavy Tail with degrees of freedom df_val)
-    t_draws = rng.standard_t(df=df_val, size=n_sims)
-    u_draws = t.cdf(t_draws, df=df_val)
-    u_draws = np.clip(u_draws, 1e-7, 1.0 - 1e-7)
-    z_factors_student = norm.ppf(u_draws)
+    run_gaussian = copula_clean in ("dual", "gaussian")
+    run_student_t = copula_clean in ("dual", "student_t")
+    z_factors_gauss = rng.normal(loc=0.0, scale=1.0, size=n_sims) if run_gaussian else None
+    if run_student_t:
+        t_draws = rng.standard_t(df=df_val, size=n_sims)
+        u_draws = t.cdf(t_draws, df=df_val)
+        u_draws = np.clip(u_draws, 1e-7, 1.0 - 1e-7)
+        z_factors_student = norm.ppf(u_draws)
+    else:
+        z_factors_student = None
 
     # Monthly net interest income baseline (NII) net of funding costs
     net_margin = max(0.008, np.mean(interest_rates) - rate_shock * 0.4)
@@ -143,9 +147,11 @@ def run_monte_carlo_vectorized(
 
         return cap_paths, tot_losses
 
-    # Run BOTH copula paths internally
-    capital_paths_gauss, total_losses_gauss = simulate_paths(z_factors_gauss)
-    capital_paths_student, total_losses_student = simulate_paths(z_factors_student)
+    # Simulate only the selected model, or both models for a paired comparison.
+    gaussian_result = simulate_paths(z_factors_gauss) if z_factors_gauss is not None else None
+    student_result = simulate_paths(z_factors_student) if z_factors_student is not None else None
+    capital_paths_gauss, total_losses_gauss = gaussian_result if gaussian_result is not None else (None, None)
+    capital_paths_student, total_losses_student = student_result if student_result is not None else (None, None)
 
     # Select primary outputs based on copula_clean parameter
     if copula_clean == "gaussian":
@@ -174,23 +180,47 @@ def run_monte_carlo_vectorized(
     sample_indices = rng.choice(n_sims, size=min(200, n_sims), replace=False)
     sample_losses = total_losses[sample_indices].tolist()
 
-    # Calculate Dual Tail Risk Comparison Metrics
-    p95_gauss = float(np.percentile(total_losses_gauss, 95))
-    p95_student = float(np.percentile(total_losses_student, 95))
-    tail_risk_gap_loss = max(0.0, p95_student - p95_gauss)
-    tail_risk_gap_pct = float((tail_risk_gap_loss / p95_gauss * 100.0) if p95_gauss > 0 else 0.0)
+    tail_risk_comparison = None
+    if copula_clean == "dual":
+        p95_gauss = float(np.percentile(total_losses_gauss, 95))
+        p95_student = float(np.percentile(total_losses_student, 95))
+        tail_risk_gap_loss = max(0.0, p95_student - p95_gauss)
+        tail_risk_gap_pct = float((tail_risk_gap_loss / p95_gauss * 100.0) if p95_gauss > 0 else 0.0)
+        tail_risk_comparison = {
+            "gaussian_expected_loss": float(np.mean(total_losses_gauss)),
+            "gaussian_p95_loss": p95_gauss,
+            "gaussian_survived_pct": float((capital_paths_gauss[:, -1] > 0).mean() * 100.0),
+            "student_t_expected_loss": float(np.mean(total_losses_student)),
+            "student_t_p95_loss": p95_student,
+            "student_t_survived_pct": float((capital_paths_student[:, -1] > 0).mean() * 100.0),
+            "tail_risk_gap_loss": tail_risk_gap_loss,
+            "tail_risk_gap_pct": tail_risk_gap_pct,
+            "summary_insight": f"Student's t heavy-tail copula increases P95 extreme losses by ${tail_risk_gap_loss / 1e6:.2f}M (+{tail_risk_gap_pct:.1f}%) over standard Gaussian baseline.",
+        }
 
-    tail_risk_comparison = {
-        "gaussian_expected_loss": float(np.mean(total_losses_gauss)),
-        "gaussian_p95_loss": p95_gauss,
-        "gaussian_survived_pct": float((capital_paths_gauss[:, -1] > 0).mean() * 100.0),
-        "student_t_expected_loss": float(np.mean(total_losses_student)),
-        "student_t_p95_loss": p95_student,
-        "student_t_survived_pct": float((capital_paths_student[:, -1] > 0).mean() * 100.0),
-        "tail_risk_gap_loss": tail_risk_gap_loss,
-        "tail_risk_gap_pct": tail_risk_gap_pct,
-        "summary_insight": f"Student's t heavy-tail copula increases P95 extreme losses by ${tail_risk_gap_loss / 1e6:.2f}M (+{tail_risk_gap_pct:.1f}%) over standard Gaussian baseline.",
-    }
+    # Regulatory capital metrics are calculated from each model's full simulated
+    # end-of-horizon capital distribution, rather than from illustrative values.
+    portfolio_size = float(outstanding.sum())
+    rwa = portfolio_size * 0.70
+    def regulatory_model_metrics(paths: np.ndarray, losses: np.ndarray) -> Dict[str, Any]:
+        end_capital = paths[:, -1]
+        car_paths = (end_capital / rwa * 100.0) if rwa > 0 else np.zeros_like(end_capital)
+        expected_loss = float(np.mean(losses))
+        stressed_car = float(np.mean(car_paths))
+        npl_ratio = min(35.0, (expected_loss / portfolio_size * 100.0) + 2.5) if portfolio_size > 0 else 5.0
+        return {
+            "expected_loss": expected_loss,
+            "tail_loss": float(np.percentile(losses, 95)),
+            "stressed_car": stressed_car,
+            "npl_ratio": npl_ratio,
+            "capital_ratio_distribution": np.round(car_paths, 4).tolist(),
+        }
+
+    model_results = {}
+    if gaussian_result is not None:
+        model_results["gaussian"] = regulatory_model_metrics(capital_paths_gauss, total_losses_gauss)
+    if student_result is not None:
+        model_results["student_t"] = regulatory_model_metrics(capital_paths_student, total_losses_student)
 
     segment_by_type = []
     for ltype, group in df.groupby("loan_type"):
@@ -236,6 +266,7 @@ def run_monte_carlo_vectorized(
         },
         "summary": summary,
         "tail_risk_comparison": tail_risk_comparison,
+        "model_results": model_results,
         "distribution": sample_losses,
         "capital_paths": {
             "p5": p5.tolist(),
@@ -416,4 +447,3 @@ def run_reverse_stress_test(
         "mitigation_status": mitigation_status,
         "summary_advisory": summary_advisory,
     }
-
