@@ -285,11 +285,8 @@ export default function RegulatoryStressResults({
                   color: "#e2e8f0",
                   fontSize: "12px",
                 }}
-                formatter={(value: number | string | Array<number | string> | undefined) => [
-                  `${Number(value || 0).toFixed(2)}% of paths`,
-                  "Frequency",
-                ]}
-                labelFormatter={(label: number | string | undefined) => `Capital Ratio: ~${Number(label || 0).toFixed(2)}%`}
+                formatter={(value) => [`${Number(value ?? 0).toFixed(2)}% of paths`, "Frequency"]}
+                labelFormatter={(label) => `Capital Ratio: ~${Number(label ?? 0).toFixed(2)}%`}
               />
               <ReferenceLine
                 x={thresholds.total}

@@ -13,6 +13,8 @@ import {
   AuthResponse,
   PredictRiskPayload,
   PredictRiskResponse,
+  ReverseStressPayload,
+  ReverseStressResponse,
 } from "@/types/api";
 
 export type {
@@ -340,7 +342,7 @@ export const runStressTest = async (payload: StressTestPayload): Promise<StressT
   }
 };
 
-export const runReverseStressTest = async (payload: Record<string, unknown>): Promise<unknown> => {
+export const runReverseStressTest = async (payload: ReverseStressPayload): Promise<ReverseStressResponse> => {
   try {
     return (await API.post("/api/v1/stress/reverse-test", payload)).data;
   } catch {
