@@ -31,6 +31,7 @@ import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ImportCsvModal } from "@/components/common/ImportCsvModal";
+import { WelcomeDataModal } from "@/components/common/WelcomeDataModal";
 import { getKpis, getKpiTrends, generateBank, getStressRuns } from "@/lib/api";
 import { Kpis, KpiTrendResponse, StressRunOut } from "@/types/api";
 import { formatCurrency, formatPercent, formatDate } from "@/lib/format";
@@ -57,6 +58,8 @@ export default function OverviewPage() {
   const [stressRuns, setStressRuns] = React.useState<StressRunOut[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [generating, setGenerating] = React.useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
     setLoading(true);
@@ -92,7 +95,15 @@ export default function OverviewPage() {
         }
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          // Show welcome data prompt modal on initial dashboard visit
+          const hasSeenNotice = sessionStorage.getItem("bank_twin_welcome_shown");
+          if (!hasSeenNotice) {
+            setIsWelcomeModalOpen(true);
+            sessionStorage.setItem("bank_twin_welcome_shown", "true");
+          }
+        }
       });
     return () => {
       isMounted = false;
@@ -129,8 +140,6 @@ export default function OverviewPage() {
     downloadCsv(headers, rows, `bank_kpis_summary_${Date.now()}.csv`);
     toast.success("Downloaded bank summary CSV");
   };
-
-  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
 
   const handleExportPdfReport = () => {
     if (!kpis) return;
@@ -466,6 +475,14 @@ export default function OverviewPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={loadData}
+      />
+
+      <WelcomeDataModal
+        isOpen={isWelcomeModalOpen}
+        onClose={() => setIsWelcomeModalOpen(false)}
+        onOpenImportCsv={() => setIsImportModalOpen(true)}
+        onGenerateBankData={handleGenerate}
+        generating={generating}
       />
     </motion.div>
   );
