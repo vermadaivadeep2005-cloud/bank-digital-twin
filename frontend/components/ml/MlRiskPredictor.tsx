@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { predictMlRisk } from "@/lib/api";
 import { PredictRiskResponse } from "@/types/api";
 import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, DollarSign, Briefcase, Building, Wallet, Calculator } from "lucide-react";
-
-const formatCurrency = (val?: number) => {
-  if (val === undefined || val === null || isNaN(val)) return "$0";
-  return `$${Math.round(val).toLocaleString()}`;
-};
+import { useCurrency } from "@/context/CurrencyContext";
 
 export function MlRiskPredictor() {
+  const { currencyConfig, formatCurrencyAmount } = useCurrency();
+  const symbol = currencyConfig?.symbol || "$";
+  const formatCurrency = (val?: number) => {
+    if (val === undefined || val === null || isNaN(val)) return `${symbol}0`;
+    return formatCurrencyAmount(val);
+  };
   const [creditScore, setCreditScore] = React.useState(740);
   const [primaryIncome, setPrimaryIncome] = React.useState(85000);
   const [assetIncome, setAssetIncome] = React.useState(18000);
@@ -156,15 +158,6 @@ export function MlRiskPredictor() {
             Calibrated Random Forest Risk Engine • Asset Income, FOIR & Debt Capacity Calculator
           </CardDescription>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Badge variant="info" className="text-[11px] font-mono border-indigo-500/40 text-indigo-600 dark:text-indigo-400">
-            IRB Scikit-Learn Model
-          </Badge>
-          <Badge variant="neutral" className="text-[11px] font-mono">
-            Basel III Compliant
-          </Badge>
-        </div>
       </div>
 
       <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -206,7 +199,7 @@ export function MlRiskPredictor() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Primary Annual Income ($)
+                  Primary Annual Income ({symbol})
                 </label>
                 <input
                   type="number"
@@ -219,7 +212,7 @@ export function MlRiskPredictor() {
 
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Asset & Rental Income ($/year)
+                  Asset & Rental Income ({symbol}/year)
                 </label>
                 <input
                   type="number"
@@ -282,7 +275,7 @@ export function MlRiskPredictor() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Monthly Living Costs ($)
+                  Monthly Living Costs ({symbol})
                 </label>
                 <input
                   type="number"
@@ -295,7 +288,7 @@ export function MlRiskPredictor() {
 
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Existing Loan EMIs ($/mo)
+                  Existing Loan EMIs ({symbol}/mo)
                 </label>
                 <input
                   type="number"
@@ -370,7 +363,7 @@ export function MlRiskPredictor() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Loan Principal ($)
+                  Loan Principal ({symbol})
                 </label>
                 <input
                   type="number"
@@ -382,7 +375,7 @@ export function MlRiskPredictor() {
 
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1">
-                  Current Outstanding ($)
+                  Current Outstanding ({symbol})
                 </label>
                 <input
                   type="number"

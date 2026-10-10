@@ -144,7 +144,7 @@ export default function OverviewPage() {
   const handleExportPdfReport = () => {
     if (!kpis) return;
     exportPdfReport({
-      title: "Aegis Bank Digital Twin — Executive Solvency & Risk Audit Report",
+      title: "Bank Digital Twin — Executive Solvency & Risk Audit Report",
       metrics: [
         { label: "Outstanding Portfolio", value: formatCurrency(kpis.total_outstanding, true), detail: "Aggregate Outstanding Principal" },
         { label: "Capital Adequacy Ratio (CAR)", value: `${kpis.car.toFixed(2)}%`, detail: "Basel III Minimum Target >= 8.0%" },

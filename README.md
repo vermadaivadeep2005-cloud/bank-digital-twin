@@ -13,17 +13,18 @@ It empowers bank executives, Chief Risk Officers (CROs), quantitative risk analy
 - **Predict Financial Metric Trajectories**: Forecast 30-day, 60-day, and 90-day trajectories for Capital Adequacy Ratio (CAR %), Non-Performing Loans (NPL %), Net Interest Margin (NIM %), deposits, and liquidity with 95% confidence intervals.
 - **Detect Financial Fraud & Anomalies**: Monitor real-time transaction streams using unsupervised IsolationForest ML and heuristic velocity rule engines to intercept high-risk midnight wires and crypto transfers.
 - **Explain Borrower Default Risk**: Analyze borrower risk profiles using explainable AI credit scoring backed by SHAP (SHapley Additive exPlanations) feature attributions.
-- **Automate Regulatory Compliance**: Evaluate real-time balance sheet compliance against Basel III/IV, CCAR, and DFAST capital & liquidity requirements (CAR $\ge 8\%$, Tier 1 $\ge 6\%$, LCR $\ge 100\%$, NSFR $\ge 100\%$).
+- **Automate Regulatory Compliance**: Evaluate real-time balance sheet compliance against RBI, Basel III/IV, and FATF capital & liquidity requirements (CAR $\ge 9\%$, Tier 1 $\ge 7\%$, CET1 $\ge 5.5\%$, LCR $\ge 100\%$).
 
 ---
 
 ### 💻 Technical Overview
 Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16 / React 19** frontend, the platform integrates specialized computational engines:
-1. **NumPy Vectorized Vasicek Monte Carlo Engine**: Executes **10,000 portfolio capital paths across 60-month horizons in under 500ms** using Vasicek single-factor asset correlation math.
+1. **NumPy Vectorized Vasicek Monte Carlo Engine**: Executes **10,000 portfolio capital paths across multi-year horizons in under 500ms** using Vasicek single-factor asset correlation math and dual Gaussian / Student's $t$-Copulas.
 2. **Surrogate Response Surface Engine**: Enables real-time <50ms What-If balance sheet recalculations and dynamic sensitivity tornado ranking.
-3. **Statsmodels Time-Series Forecasting Engine**: Computes Exponential Smoothing & ARIMA models with shaded 80% and 95% statistical confidence bounds.
+3. **Statsmodels Time-Series Forecasting Engine**: Computes Holt-Winters Exponential Smoothing & Autoregressive models with shaded 80% and 95% statistical confidence bounds.
 4. **Scikit-Learn IsolationForest & Rule-Based Fraud Detection System**: Performs unsupervised anomaly scoring and rule-based velocity checks on transaction streams.
 5. **Calibrated Random Forest Credit Scorecard**: Integrates Isotonic Regression and SHAP TreeExplainer attribution for explainable borrower risk evaluation.
+6. **Multi-Currency Global Context**: Multi-currency engine (`$` USD, `₹` INR, `€` EUR, `£` GBP) with live ECB exchange rate synchronization.
 
 ---
 
@@ -84,7 +85,69 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
 | **Machine Learning** | Scikit-Learn 1.9 + SHAP 0.51 | Calibrated Random Forest credit risk scoring, IsolationForest anomaly detection, and TreeExplainer feature attributions. |
 | **Quantitative Engine** | NumPy 2.3 + SciPy 1.17 | Matrix vectorized Vasicek loss calculations running 10,000 Monte Carlo simulation paths in <500ms. |
 | **Time-Series Engine** | Statsmodels 0.15 | Exponential Smoothing & ARIMA forecasting with upper/lower confidence bounds. |
-| **Database & ORM** | SQLAlchemy 2.0 + SQLite / PostgreSQL | Zero-setup local SQLite storage (`backend/bank_twin.db`) with full PostgreSQL compatibility via `DATABASE_URL`. |
+| **Database & ORM** | SQLAlchemy 2.0 + SQLite / PostgreSQL | Zero-setup local SQLite storage (`bank_twin.db`) with full PostgreSQL compatibility via `DATABASE_URL`. |
+
+---
+
+## 🧮 Mathematical & Quantitative Financial Models
+
+### 1. Baseline Credit Risk & Logistic Scoring Model
+Computes the monthly baseline **Probability of Default** ($\text{PD}$) for each loan using borrower credit scores, employment type, and loan collateral:
+
+$$\text{Score Factor} = \frac{1}{1 + e^{\frac{\text{CreditScore} - 620}{40}}}$$
+
+$$\text{Baseline PD} = \text{Score Factor} \times M_{\text{employment}} \times M_{\text{loan\_type}} \times 0.002$$
+
+### 2. Vasicek Single-Factor Credit Model (Basel III Standard)
+Models how macroeconomic shocks ($Z$) affect portfolio credit correlation and loan default probabilities:
+
+$$Y_i = \sqrt{\rho_i} Z + \sqrt{1 - \rho_i} \epsilon_i$$
+
+Under an economic shock $Z$, the conditional default probability is:
+
+$$\text{Conditional PD}(Z) = \Phi \left( \frac{\Phi^{-1}(\text{Base PD}) - \sqrt{\rho_i} Z}{\sqrt{1 - \rho_i}} \right)$$
+
+### 3. Dual-Copula Monte Carlo Simulation Engine
+Simulates thousands of parallel 24-month economic futures ($n=1,000 \text{ to } 10,000$ simulation paths):
+* **Gaussian Copula**: Draws standard normal macro shocks $Z \sim \mathcal{N}(0,1)$.
+* **Student's $t$-Copula**: Draws heavy-tailed extreme shock events using Student's $t$-distribution with $\nu$ degrees of freedom.
+* **Value at Risk ($\text{VaR}_{\alpha}$)**: $\text{VaR}_{\alpha} = \text{Percentile}(L_{\text{total}}, \alpha)$
+* **Conditional Value at Risk ($\text{CVaR}_{\alpha}$ / Expected Shortfall)**: $\text{CVaR}_{\alpha} = \mathbb{E}[L_{\text{total}} \mid L_{\text{total}} \ge \text{VaR}_{\alpha}]$
+
+### 4. Regulatory Balance Sheet Ratios (Basel III / RBI)
+* **Risk-Weighted Assets ($\text{RWA}$)**: $\text{RWA} = \sum_{i} \left( \text{Loan Outstanding}_i \times \text{Risk Weight}_i \right)$
+* **Capital Adequacy Ratio ($\text{CAR}$)**: $\text{CAR} = \frac{\text{Tier 1 Capital}}{\text{RWA}} \ge 9.0\%$
+* **Liquidity Coverage Ratio ($\text{LCR}$)**: $\text{LCR} = \frac{\text{HQLA}}{\text{30-Day Net Cash Outflows}} \ge 100\%$
+
+---
+
+## 📁 Codebase Directory Structure
+
+```
+bank-digital-twin/
+├── backend/
+│   ├── app/
+│   │   ├── api/             # API routes (/simulation, /forecast, /compliance, /loans)
+│   │   ├── core/            # Configuration, security, background tasks
+│   │   ├── models/          # SQLAlchemy ORM database models (Customer, Loan, Account)
+│   │   ├── schemas/         # Pydantic data validation schemas
+│   │   ├── services/        # Business logic services (KPI, Compliance, AI Advisor)
+│   │   └── simulation/      # Quantitative finance engines (Monte Carlo, Vasicek, ML)
+│   ├── scripts/             # Data seeding and portfolio ingestion scripts
+│   ├── tests/               # Automated unit test suite (pytest)
+│   ├── bank_twin.db         # SQLite database file
+│   └── requirements.txt     # Python dependencies
+├── frontend/
+│   ├── app/                 # Next.js App Router pages
+│   ├── components/          # Reusable UI components & Recharts visualizers
+│   ├── context/             # Global Currency & Application React Contexts
+│   ├── lib/                 # API client utilities and export helpers
+│   ├── public/              # Static images and screenshots
+│   └── types/               # TypeScript interface definitions
+├── bank_twin.db             # Root SQLite database file
+├── PRD.md                   # Product Requirements Document
+└── README.md                # Full Project Documentation
+```
 
 ---
 
@@ -105,7 +168,6 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
   * **Deposit Outflow %**: 0% to 40%
 * **Surrogate Response Surface**: Computes post-stress CAR %, NPL %, Net Losses ($), and Solvency Risk Levels in **<50ms**.
 * **Dynamic Sensitivity Tornado Ranking Chart**: Automatically recalculates and animates in real-time as sliders change, ranking macro shock factors by marginal CAR % impact per 1% shock.
-* **Scenario Management**: Reset sliders to baseline or save custom What-If scenario states.
 
 ### 3. 📈 Predictive Metric Forecasting (`/forecasts`)
 * **Multi-Metric Selection**: Switch between Capital Adequacy Ratio (CAR %), Non-Performing Loans (NPL %), Net Interest Margin (NIM %), Liquidity Ratio %, and Tier 1 Capital.
@@ -113,9 +175,9 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
 * **Dual Distribution Pie Charts**:
   * **Forecast Risk Profile Pie**: Categorizes forecasted data points into Optimal, Stable, Watchlist, and Critical risk zones.
   * **Isometric 3D Cylinder Pie Chart (`ThreeDPieChart`)**: Rendered with pseudo-3D side wall depth, exploded slices, radial callout pins, and dynamic metric breakdown.
-* **Aligned Side-by-Side Cards**: Equal-height flex containers with clean headers, removing unnecessary tag clutter.
 
-### 4. 🛡️ Fraud & Anomaly Intelligence Center (`/fraud`)
+### 4. 🛡️ Fraud & Anomaly Center (`/fraud`)
+* **Clean & Focused Interface**: Streamlined heading layout designed for rapid operational response.
 * **Unsupervised IsolationForest ML**: Anomaly likelihood scoring combined with contamination parameters.
 * **Multi-Vector Rule Engine**:
   * `LARGE_TRANSACTION_AMOUNT (> $10k)`
@@ -123,9 +185,7 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
   * `MIDNIGHT_HIGH_VALUE_WIRE`
   * `HIGH_RISK_CATEGORY_TRANSFER`
 * **Real-Time Sentinel Stream**: Live alert counts, Critical & High Risk counts, Total Capital at Risk ($), and ML Model Precision metrics.
-* **Distribution Visualizations**: Risk Tier donut chart (Critical, High, Medium, Low) and Anomaly Vector breakdown donut chart.
 * **Interactive Threat Simulation**: Includes a **"Simulate Anomaly Threat"** button to test instant live sentinel threat interception and toast alerts.
-* **Flagged Transaction Stream Table**: Search by TxID or category, filter by risk tier tabs (All, Critical, High, Medium), and view transaction details.
 
 ### 5. ⚡ Monte Carlo Stress Testing Engine (`/stress`)
 * **Vectorized Monte Carlo Matrix**: Executes 10,000 asset paths using Vasicek single-factor credit correlation.
@@ -133,28 +193,25 @@ Built on a high-performance **FastAPI (Python 3.11)** backend and a **Next.js 16
 * **Quant Outputs**: P5, P50, and P95 drawdown fan charts, loss severity histograms, Value at Risk (VaR 99%), Expected Shortfall (CVaR 99%), and capital post-stress pass/fail indicators.
 
 ### 6. 📁 Loan Portfolio Explorer (`/portfolio`)
-* **Borrower & Loan Catalog**: Searchable and filterable table of retail and commercial loans.
-* **Explainable AI Credit Risk Scorecard**: Click any borrower to view calibrated default probabilities and SHAP feature attributions (income, credit score, debt-to-income, employment status).
+* **Clean Full Ledger View**: Streamlined full-width loan ledger displaying principal, outstanding, interest rate, status, and region.
+* **Bank Credit Risk & Underwriting Scorecard**: Interactive loan decision calculator for evaluating credit scores, income, living costs, and debt obligations with dynamic multi-currency support (`$`, `₹`, `€`, `£`).
 
 ### 7. 📚 Stress Scenario Library (`/scenarios`)
 * **Preset Macro Scenarios**: 2008 Global Financial Crisis, 2023 SVB Liquidity Run, Commercial Real Estate Collapse, and Stagflation Shock.
 * **Natural Language Synthesizer**: Convert plain-English risk descriptions into quantitative stress parameters.
 
 ### 8. ⚖️ Regulatory Compliance & Reporting (`/compliance` & `/reports`)
-* **Basel III / IV Matrix**: Evaluates Capital Adequacy Ratio (CAR $\ge 8\%$), Tier 1 Ratio ($\ge 6\%$), CET1 ($\ge 4.5\%$), Liquidity Coverage Ratio (LCR $\ge 100\%$), Net Stable Funding Ratio (NSFR $\ge 100\%$), and Capital Conservation Buffer ($2.5\%$).
+* **RBI, Basel III/IV & FATF Matrix**: Evaluates Capital Adequacy Ratio (CAR $\ge 9\%$), Tier 1 Ratio ($\ge 7\%$), CET1 ($\ge 5.5\%$), Liquidity Coverage Ratio (LCR $\ge 100\%$), and Net Stable Funding Ratio (NSFR $\ge 100\%$).
 * **Automated Report Generation**: Generate and download official PDF, CSV, and JSON audit reports.
-
-### 9. 📜 Audit History (`/history`)
-* **Execution Audit Log**: Complete history of stress testing runs, user timestamps, and parameter records.
 
 ---
 
 ## 🏆 Current Project Status & Achievements
 
-- ✅ **All Core Features & Pages Fully Operational**: 10 pages in the sidebar are seamlessly integrated with interactive charts, real-time recalculations, and backend APIs.
-- ✅ **100% Pytest Pass Rate**: All 16 unit and integration backend tests pass cleanly (`test_auth.py`, `test_compliance.py`, `test_forecasts.py`, `test_fraud.py`, `test_kpis.py`, `test_ml_model.py`, `test_simulator.py`, `test_transactions.py`, `test_what_if.py`).
-- ✅ **0 TypeScript Errors**: Clean `npx tsc --noEmit` build output across the entire Next.js codebase.
-- ✅ **Clean Codebase**: Removed 13 obsolete legacy files and unneeded boilerplate assets.
+- ✅ **All Core Features & Pages Fully Operational**: Integrated across interactive charts, real-time recalculations, and backend APIs.
+- ✅ **100% Pytest Pass Rate**: All 21 unit and integration backend tests pass cleanly (`test_auth.py`, `test_compliance.py`, `test_forecasts.py`, `test_fraud.py`, `test_fx.py`, `test_kpis.py`, `test_ml_model.py`, `test_simulator.py`, `test_transactions.py`, `test_what_if.py`).
+- ✅ **0 TypeScript Errors & Clean Production Build**: Clean `npx tsc --noEmit` and production `npm run build` output across the entire Next.js codebase.
+- ✅ **Clean Codebase**: Cleaned up temporary log files and unnecessary build artifacts.
 
 ---
 
@@ -197,15 +254,16 @@ npm run dev
 
 ### 3. Running the Verification Suite
 
-#### Run Backend Pytest Suite (16/16 Passed)
+#### Run Backend Pytest Suite (21/21 Passed)
 ```bash
-PYTHONPATH=backend backend/venv/bin/pytest backend/tests/
+python3 -m pytest backend/tests/
 ```
 
-#### Run Frontend TypeScript Type-Check (0 Errors)
+#### Run Frontend TypeScript Type-Check & Production Build
 ```bash
 cd frontend
 npx tsc --noEmit
+npm run build
 ```
 
 ---
@@ -230,7 +288,7 @@ When presenting the **Bank Digital Twin** to clients, executives, or examiners, 
    * Change the forecast horizon from **30 Days** to **90 Days**.
    * Point out the shaded 95% statistical confidence bounds on the area graph and showcase the **Isometric 3D Cylinder Pie Chart** displaying risk distribution slices.
 
-4. **Step 4: Fraud & Anomaly Intelligence Center (`http://localhost:3000/fraud`)**
+4. **Step 4: Fraud & Anomaly Center (`http://localhost:3000/fraud`)**
    * Point out the live **IsolationForest ML** and heuristic velocity rule stream.
    * Click **"Simulate Anomaly Threat"** to trigger a synthetic high-risk crypto/wire transfer and watch the sentinel intercept it in real time.
    * Filter the flagged transaction stream table by clicking the **Critical** or **High** risk tabs.
@@ -247,8 +305,8 @@ When presenting the **Bank Digital Twin** to clients, executives, or examiners, 
 The project supports both **SQLite** (default out-of-the-box) and **PostgreSQL**.
 
 * **SQLite (Default)**:
-  * File location: `backend/bank_twin.db`
-  * Inspect via terminal: `sqlite3 backend/bank_twin.db` -> `.tables` -> `SELECT * FROM transactions LIMIT 10;`
+  * File location: `bank_twin.db`
+  * Inspect via terminal: `sqlite3 bank_twin.db` -> `.tables` -> `SELECT * FROM transactions LIMIT 10;`
 * **PostgreSQL (Optional)**:
   * To connect to a PostgreSQL database, update `DATABASE_URL` in `backend/.env`:
     ```env

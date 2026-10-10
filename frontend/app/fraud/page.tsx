@@ -320,24 +320,12 @@ export default function FraudPage() {
 
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 rounded-xl p-6 backdrop-blur-md shadow-2xl">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 shadow-inner">
-            <ShieldAlert className="h-7 w-7 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Fraud & Anomaly Intelligence Center</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                Live Sentinel Active
-              </span>
-            </div>
-            <p className="text-slate-400 text-sm mt-1">
-              Real-time anomaly scoring powered by <span className="text-rose-400 font-mono font-semibold">IsolationForest ML</span> & heuristic velocity rules
-            </p>
-          </div>
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Fraud & Anomaly Center
+          </h1>
         </div>
 
         <div className="flex items-center space-x-3 flex-wrap gap-2">

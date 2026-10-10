@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  Filter,
   RefreshCw,
   Building2,
   ChevronLeft,
@@ -136,53 +135,7 @@ export default function PortfolioPage() {
       {/* ML Risk Predictor Calculator Widget */}
       <MlRiskPredictor />
 
-      {/* Filter Toolbar Card */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono uppercase font-semibold mr-2">
-            <Filter className="w-4 h-4 text-indigo-500" />
-            <span>Filters:</span>
-          </div>
 
-          {/* Loan Type Dropdown */}
-          <select
-            value={loanType}
-            onChange={(e) => {
-              setLoanType(e.target.value);
-              setPage(1);
-            }}
-            className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
-          >
-            <option value="">All Loan Types</option>
-            <option value="mortgage">Mortgage</option>
-            <option value="personal">Personal</option>
-            <option value="auto">Auto</option>
-            <option value="business">Business</option>
-          </select>
-
-          {/* Status Dropdown */}
-          <select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
-          >
-            <option value="">All Statuses</option>
-            <option value="current">Current</option>
-            <option value="delinquent">Delinquent</option>
-            <option value="default">Default</option>
-          </select>
-
-          {/* Reset Button */}
-          {(loanType || status || region) && (
-            <Button size="sm" variant="ghost" onClick={resetFilters}>
-              Reset Filters
-            </Button>
-          )}
-        </div>
-      </Card>
 
       {/* Data Table */}
       <Card className="overflow-hidden p-0">

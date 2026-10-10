@@ -76,7 +76,7 @@ export function BankLogo({ className, size = "md", withText = false }: BankLogoP
       {withText && (
         <div className="flex flex-col whitespace-nowrap">
           <span className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight leading-none flex items-center gap-1.5">
-            Aegis Digital Twin
+            Bank Digital Twin
           </span>
           <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
             Quantitative Risk & Stress Engine

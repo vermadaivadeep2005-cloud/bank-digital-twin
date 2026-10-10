@@ -18,13 +18,12 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Aegis Digital Twin — Quantitative Risk & Stress Intelligence Platform",
-    template: "%s | Aegis Digital Twin",
+    default: "Bank Digital Twin — Quantitative Risk & Stress Intelligence Platform",
+    template: "%s | Bank Digital Twin",
   },
   description:
     "Enterprise synthetic financial simulation platform executing vectorized Vasicek Monte Carlo stress tests, IsolationForest ML fraud detection, and real-time Basel III/IV capital adequacy modeling.",
   keywords: [
-    "Aegis Digital Twin",
     "Bank Digital Twin",
     "Quantitative Risk Modeling",
     "Monte Carlo Simulation",
@@ -51,15 +50,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://aegisdigitaltwin.com",
-    siteName: "Aegis Digital Twin",
-    title: "Aegis Digital Twin — Quantitative Risk & Stress Intelligence Engine",
+    url: "https://bankdigitaltwin.com",
+    siteName: "Bank Digital Twin",
+    title: "Bank Digital Twin — Quantitative Risk & Stress Intelligence Engine",
     description:
       "Enterprise synthetic financial simulation platform executing vectorized Vasicek Monte Carlo stress tests, IsolationForest ML fraud detection, and real-time Basel III/IV capital adequacy modeling.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aegis Digital Twin — Quantitative Financial Simulation",
+    title: "Bank Digital Twin — Quantitative Financial Simulation",
     description: "Enterprise synthetic bank stress testing and ML risk engine.",
   },
 };

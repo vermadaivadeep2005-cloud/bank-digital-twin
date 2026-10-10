@@ -270,7 +270,7 @@ export function exportPdfReport(options: PdfReportOptions = {}) {
         ${tablesHtml}
 
         <div class="footer">
-          Aegis Bank Digital Twin &copy; ${new Date().getFullYear()} — Proprietary Financial Solvency Audit Report
+          Bank Digital Twin &copy; ${new Date().getFullYear()} — Proprietary Financial Solvency Audit Report
         </div>
 
         <script>

@@ -322,7 +322,7 @@ export function LoginPage() {
 
       {/* Footer */}
       <footer className="relative z-10 p-6 text-center text-xs text-slate-500 font-mono">
-        Aegis Digital Twin &copy; {new Date().getFullYear()} — Enterprise Risk & Solvency Engine
+        Bank Digital Twin &copy; {new Date().getFullYear()} — Enterprise Risk & Solvency Engine
       </footer>
     </div>
   );

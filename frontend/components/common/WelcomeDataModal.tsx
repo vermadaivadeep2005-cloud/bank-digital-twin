@@ -56,7 +56,7 @@ export function WelcomeDataModal({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Badge className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 text-xs font-mono px-3 py-1">
-                Aegis Bank Digital Twin
+                Bank Digital Twin
               </Badge>
               <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-mono px-3 py-1">
                 Setup Assistant
