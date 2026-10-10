@@ -2,6 +2,10 @@
 
 import * as React from "react";
 import {
+  Filter,
+  Search,
+  X,
+  RotateCcw,
   RefreshCw,
   Building2,
   ChevronLeft,
@@ -29,6 +33,7 @@ export default function PortfolioPage() {
   const [loanType, setLoanType] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [region, setRegion] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const loadPortfolio = React.useCallback(async () => {
     setLoading(true);
@@ -75,19 +80,34 @@ export default function PortfolioPage() {
     setLoanType("");
     setStatus("");
     setRegion("");
+    setSearchQuery("");
     setPage(1);
   };
 
+  const filteredItems = React.useMemo(() => {
+    if (!data || !data.items) return [];
+    if (!searchQuery.trim()) return data.items;
+    const q = searchQuery.toLowerCase().trim();
+    return data.items.filter(
+      (l) =>
+        l.id.toLowerCase().includes(q) ||
+        (l.customer_id && l.customer_id.toLowerCase().includes(q)) ||
+        l.loan_type.toLowerCase().includes(q) ||
+        l.region.toLowerCase().includes(q) ||
+        l.status.toLowerCase().includes(q)
+    );
+  }, [data, searchQuery]);
+
   const handleExportJson = () => {
     if (!data || !data.items) return;
-    downloadJson(data.items, `loan_portfolio_${Date.now()}.json`);
+    downloadJson(filteredItems, `loan_portfolio_${Date.now()}.json`);
     toast.success("Downloaded portfolio loans JSON");
   };
 
   const handleExportCsv = () => {
     if (!data || !data.items) return;
     const headers = ["Loan ID", "Customer ID", "Loan Type", "Principal ($)", "Outstanding ($)", "Interest Rate %", "Status", "Region"];
-    const rows: (string | number)[][] = data.items.map((l) => [
+    const rows: (string | number)[][] = filteredItems.map((l) => [
       l.id,
       l.customer_id || "",
       l.loan_type,
@@ -135,7 +155,102 @@ export default function PortfolioPage() {
       {/* ML Risk Predictor Calculator Widget */}
       <MlRiskPredictor />
 
+      {/* Interactive Filter Toolbar Card */}
+      <Card className="p-4 bg-slate-900/90 border-slate-800 shadow-xl space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono uppercase font-semibold mr-1">
+              <Filter className="w-4 h-4 text-indigo-400" />
+              <span>Filters:</span>
+            </div>
 
+            {/* Loan Type Dropdown */}
+            <select
+              value={loanType}
+              onChange={(e) => {
+                setLoanType(e.target.value);
+                setPage(1);
+              }}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner"
+            >
+              <option value="">All Loan Types</option>
+              <option value="mortgage">Mortgage</option>
+              <option value="personal">Personal</option>
+              <option value="auto">Auto</option>
+              <option value="business">Business</option>
+            </select>
+
+            {/* Status Dropdown */}
+            <select
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner"
+            >
+              <option value="">All Statuses</option>
+              <option value="current">Current</option>
+              <option value="delinquent">Delinquent</option>
+              <option value="default">Default</option>
+            </select>
+
+            {/* Region Dropdown */}
+            <select
+              value={region}
+              onChange={(e) => {
+                setRegion(e.target.value);
+                setPage(1);
+              }}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner"
+            >
+              <option value="">All Regions</option>
+              <option value="CA">California (CA)</option>
+              <option value="NY">New York (NY)</option>
+              <option value="TX">Texas (TX)</option>
+              <option value="FL">Florida (FL)</option>
+              <option value="IL">Illinois (IL)</option>
+              <option value="MA">Massachusetts (MA)</option>
+              <option value="WA">Washington (WA)</option>
+            </select>
+
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search Loan / Region..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-44 shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Reset Button */}
+            {(loanType || status || region || searchQuery) && (
+              <Button size="sm" variant="ghost" onClick={resetFilters} className="text-slate-400 hover:text-white text-xs gap-1.5">
+                <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                <span>Reset Filters</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Matches Count Badge */}
+          {data && (
+            <div className="text-[11px] font-mono text-slate-400">
+              Showing <span className="text-indigo-400 font-bold">{filteredItems.length}</span> of {data.total} loans
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Data Table */}
       <Card className="overflow-hidden p-0">
@@ -161,14 +276,17 @@ export default function PortfolioPage() {
                     </td>
                   </tr>
                 ))
-              ) : !data || data.items.length === 0 ? (
+              ) : !data || filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-sans">
-                    No loans match the selected filters.
+                  <td colSpan={6} className="p-8 text-center text-slate-500 font-sans space-y-2">
+                    <p>No loans match the selected filters.</p>
+                    <Button size="sm" variant="outline" onClick={resetFilters} className="mt-2 text-xs">
+                      Reset Filters
+                    </Button>
                   </td>
                 </tr>
               ) : (
-                data.items.map((loan) => (
+                filteredItems.map((loan) => (
                   <tr
                     key={loan.id}
                     className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors"
